@@ -1,0 +1,28 @@
+Package: branchpointer
+Type: Package
+Title: Prediction of intronic splicing branchpoints
+Version: 0.1
+Date: 2016-08-19
+Author: Beth Signal
+Maintainer: Beth Signal <b.signal@garvan.org.au>
+Description: Predicts branchpoint probability for sites in intronic branchpoint windows. Queries can be supplied as intronic regions; or to evaluate the effects of mutations, SNPs.
+LazyData: TRUE
+Depends:
+    caret,
+    R(>= 2.10)
+Imports:
+    data.table,
+    plyr,
+    kernlab,
+    gbm,
+    stringr,
+    cowplot,
+    ggplot2,
+    biomaRt,
+    Biostrings
+Suggests:
+    parallel,
+    knitr,
+    rmarkdown
+RoxygenNote: 5.0.1
+VignetteBuilder: knitr
