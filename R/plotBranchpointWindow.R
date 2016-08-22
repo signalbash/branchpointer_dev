@@ -246,9 +246,11 @@ plotBranchpointWindow <- function(query_name,
     ggdraw() +
       draw_plot(structure_plot,0,0.775,1,0.225) +
       draw_plot(plot_prob_ref,0,.325,1,.45) + draw_plot(plot_seq_ref,0,.25,1,.075) + draw_plot(plot_U2_ref,0,0,1,.25)
+
   }else if (plot_structure == FALSE & plot_mutated == FALSE) {
     ggdraw() +
-      draw_plot(plot_prob_ref,0,.325,1,.45) + draw_plot(plot_seq_ref,0,.25,1,.075) + draw_plot(plot_U2_ref,0,0,1,.25)
+      draw_plot(plot_prob_ref,0,.45,1,.55) + draw_plot(plot_seq_ref,0,.35,1,.1) + draw_plot(plot_U2_ref,0,0,1,.35)
+
   }else if (plot_structure == FALSE & plot_mutated == TRUE) {
     ggdraw() +
       draw_plot(plot_seq_comparison,0,0.9,1,0.1) +
