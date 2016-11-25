@@ -104,7 +104,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     #convert to .fasta using bedtools
     utils::write.table(
       bed, sep = "\t", file = paste0(working_directory,"/mutation_",unique_id,".bed"),
-      row.names = F,col.names = F,quote = F
+      row.names = FALSE,col.names = FALSE,quote = FALSE
     )
     cmd <- paste0(
       bedtools_location," getfasta -fi ", genome,
@@ -114,7 +114,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     system(cmd)
     fasta <-
       data.table::fread(paste0(working_directory,"/mutation_",unique_id,".fa"),
-                        header = F, stringsAsFactors = FALSE)
+                        header = FALSE, stringsAsFactors = FALSE)
     fasta <- as.data.frame(fasta)
     system(paste0("rm -f ",working_directory,"/mutation_",unique_id,"*"))
 
@@ -260,7 +260,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     cluster <- parallel::makeCluster(cores)
 
     canon_hits <- parallel::parLapply(cluster,f, getCanonical3SS)
-    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = T)
+    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = TRUE)
     canon_df <- as.data.frame(canon_df, stringsAsFactors=FALSE)
     colnames(canon_df) <-
       c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")
@@ -272,7 +272,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     parallel::stopCluster(cluster)
   }else{
     canon_hits <- lapply(f, getCanonical3SS)
-    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = T)
+    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = TRUE)
     canon_df <- as.data.frame(canon_df, stringsAsFactors=FALSE)
     colnames(canon_df) <-
       c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")

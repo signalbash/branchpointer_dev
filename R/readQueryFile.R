@@ -20,7 +20,7 @@ readQueryFile <- function(query_file, query_type){
   if(missing(query_type)){
 
     queryTest <- fread(
-      query_file,header = T,
+      query_file,header = TRUE,
       nrows=1
       )
 
@@ -53,7 +53,7 @@ readQueryFile <- function(query_file, query_type){
     if (query_type == "SNP") {
 
       query <- fread(
-        query_file,header = T,
+        query_file,header = TRUE,
         colClasses = c(
           "character", "character", "numeric",
           "character", "character", "character"
@@ -84,7 +84,7 @@ readQueryFile <- function(query_file, query_type){
     }else if (query_type == "region") {
 
       query <- fread(
-        query_file, header = T,colClasses = c(
+        query_file, header = TRUE,colClasses = c(
           "character","character","numeric","numeric","character"
         )
       )

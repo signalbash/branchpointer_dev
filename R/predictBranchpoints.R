@@ -44,7 +44,7 @@ predictBranchpoints <- function(query_attributes,
   #remove any rows with NA values
   is_na <- apply(query_attributes_formodel[,-c(1,2)], 2, is.na)
   is_na_v <- apply(is_na,1, any)
-  rm <- which(is_na_v == T)
+  rm <- which(is_na_v == TRUE)
   if(length(rm) > 0){
     query_attributes_formodel <- query_attributes_formodel[-rm,]
     query_attributes <- query_attributes[-rm,]

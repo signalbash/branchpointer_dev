@@ -22,7 +22,7 @@ readExonAnnotation <- function(exon_file, output_file=NA){
     exons <- gtfToExons(exon_file, output_file=output_file)
 
   }else{
-    exons <- as.data.frame(data.table::fread(exon_file, stringsAsFactors = F))
+    exons <- as.data.frame(data.table::fread(exon_file, stringsAsFactors = FALSE))
   }
   colnames(exons) <- c("chromosome","type","start","end","strand",
                        "gene_id","gene_type","transcript_id",
