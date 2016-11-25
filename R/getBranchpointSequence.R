@@ -144,7 +144,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     if (any(!ref_allele_correct)) {
       rm <- which(ref_allele_correct == FALSE)
 
-      if (all(ref_allele_correct[query$strand == "-"] == F) &
+      if (all(ref_allele_correct[query$strand == "-"] == FALSE) &
           all(ref_allele_correct[query$strand == "+"])) {
         message("reference alleles are incorrect for all negative strand introns")
         message("please input alleles as positive strand sequences")

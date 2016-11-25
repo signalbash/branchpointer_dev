@@ -191,8 +191,8 @@ The main panel displays the probability scores of each site within the branchpoi
 BRCA2 intron (ENSE00002167182.1 - ENSE00003461148.1).
 ```{r Figure 1, fig.width=6, fig.height=6}
 plotBranchpointWindow(query_intron$id[2], branchpoint_predictions_intron,query_attributes_intron,
-                      probability_cutoff = 0.5,plot_mutated = F,
-                      plot_structure = T,exons = exons)
+                      probability_cutoff = 0.5,plot_mutated = FALSE,
+                      plot_structure = TRUE,exons = exons)
 
 ```
 
@@ -201,8 +201,8 @@ plotBranchpointWindow(query_intron$id[2], branchpoint_predictions_intron,query_a
 [rs17000647](http://www.ebi.ac.uk/gwas/search?query=rs17000647) in C4orf26 intron 1.
 ```{r Figure 2, fig.width=6, fig.height=6}
 plotBranchpointWindow(query_snp$id[2], branchpoint_predictions_snp,query_attributes_snp,
-                      probability_cutoff = 0.5,plot_mutated = T,
-                      plot_structure = T,exons = exons)
+                      probability_cutoff = 0.5,plot_mutated = TRUE,
+                      plot_structure = TRUE,exons = exons)
 
 ```
 
