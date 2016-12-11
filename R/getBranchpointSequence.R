@@ -12,6 +12,9 @@
 #' @param working_directory directory where intermediate .bed and .fa are located
 #' @param use_parallel use parallelisation to speed up code?
 #' @param cores number of cores to use in parallelisation (default = \code{1})
+#' @param useBSgenome Use a BSgenome object for sequence retrieval?  (default = \code{1})
+#' Overridden if a genome .fa and a bedtools_location are sepcified.
+#' @param BSgenome BSgenome object
 #' @return data.frame with all features required to predict branchpoint probability scores
 #' @export
 #' @import data.table
@@ -19,18 +22,28 @@
 #' @importFrom Biostrings complement
 #' @examples
 #' query_attributes <- getBranchpointSequence(query,
+#' query_type = "SNP"
 #' genome = "GRCh38.p5.genome.fa",
-#' bedtools_location="/Applications/apps/bedtools2/bin/bedtools")
+#' bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
+#'
+#' genome <- BSgenome.Hsapiens.UCSC.hg38
+#' query_attributes <- getBranchpointSequence(query,
+#' query_type = "region"
+#' useBSgenome = TRUE,
+#' BSgenome = genome)
+
 #' @author Beth Signal
 
 getBranchpointSequence <- function(query, unique_id = "test",
                                    query_type,
                                    working_directory = ".",
-                                   genome,
+                                   genome = NA,
                                    rm_chr = FALSE,
                                    bedtools_location,
                                    use_parallel = FALSE,
-                                   cores = 1) {
+                                   cores = 1,
+                                   useBSgenome = FALSE,
+                                   BSgenome = NULL) {
 
 
   if(missing(query_type) | !(query_type %in% c("SNP", "region"))){
@@ -39,17 +52,37 @@ getBranchpointSequence <- function(query, unique_id = "test",
 
   }
 
-  if(missing(genome)){
+  if(is.na(genome) & useBSgenome == FALSE){
 
-        stop("please specify a genome .fa file for sequence extraction")
+        stop("please specify a genome .fa file for sequence extraction or set useBSgenome to TRUE and specify a BSgenome object")
 
-      }
+  }
 
-     if(missing(bedtools_location)){
+  if(is.na(genome) & useBSgenome == TRUE & is.null(BSgenome)){
 
-      stop("please specify the bedtools binary location")
+    stop("please specify a BSgenome object")
 
-    }
+  }
+
+  if(is.na(genome) & useBSgenome == FALSE & !missing(bedtools_location)){
+
+    stop("please specify a genome .fa file for sequence extraction")
+
+  }
+
+  if(missing(bedtools_location) & !is.na(genome) & (useBSgenome == FALSE | (useBSgenome == TRUE & is.null(BSgenome)))){
+
+    stop("please specify the bedtools binary location")
+
+  }
+
+  if(!is.na(genome) & !missing(bedtools_location) & useBSgenome == TRUE & !is.null(BSgenome)){
+
+    stop("Both a .fa genome and BSgenome have been specified.\n
+         Using the .fa genome...\n
+         to use BSgenome, don't specify a .fa file")
+
+  }
 
   if(use_parallel){
 
@@ -101,7 +134,13 @@ getBranchpointSequence <- function(query, unique_id = "test",
     bed[,1] <- gsub("chr","", bed[,1])
   }
 
-    #convert to .fasta using bedtools
+  if(useBSgenome){
+    bed_seq <- getSeq(BSgenome, bed$chromosome, start=bed$start+1,
+                   end=bed$end, strand=bed$strand)
+    s <- as.character(bed_seq)
+    ids <- rownames(bed)
+  }else{
+  #convert to .fasta using bedtools
     utils::write.table(
       bed, sep = "\t", file = paste0(working_directory,"/mutation_",unique_id,".bed"),
       row.names = FALSE,col.names = FALSE,quote = FALSE
@@ -122,7 +161,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
     ids <- gsub(">","",fasta[seq(1,dim(fasta)[1],by = 2),1])
     m <- match(query$id,ids)
     query <- query[which(!is.na(m)),]
-
+  }
 
   ##mutate at SNP location
   if (query_type == "SNP") {

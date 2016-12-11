@@ -38,8 +38,13 @@ readExonAnnotation will generate an exon annotation table from a gtf, and save i
 exons <- readExonAnnotation("gencode.v24.annotation.gtf")
 ```
 After this step has been performed once, the exon file can be specified instead to save reformatting the gtf file again.
-```{r read exons}
+```r
 exons <- readExonAnnotation("gencode.v24.annotation.exons.txt")
+```
+We will load in a small formatted exon annotation file from the package data
+```{r read exons}
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
 ```
 
 ## Branchpoint predictions
@@ -53,7 +58,8 @@ To cover multiple 3'exons, please provide branchpointer with seperate region que
 For known regions, queries can be supplied as a table:
 
 ```{r read introns}
-query_intron <- readQueryFile("intron_example.txt",query_type = "region")
+query_intron <- system.file("extdata","intron_example.txt", package = "branchpointer")
+query_intron <- readQueryFile(query_intron,query_type = "region")
 
 pander::pander(query_intron, row.names=FALSE, split.table=130, style="rmarkdown")
 ```
@@ -96,7 +102,8 @@ Query SNPs should be located nearby a branchpoint window to have any potential e
 SNP queries can be supplied as a table formatted as follows:
 
 ```{r read snp}
-query_snp <- readQueryFile("SNP_example.txt",query_type = "SNP")
+query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query_snp <- readQueryFile(query_snp,query_type = "SNP")
 ```
 
 
@@ -137,10 +144,10 @@ If a SNP query type is provided, this will also perform an in silico mutation of
 
 All features required for the model to predict branchpoint probability are contained within this data.frame.
 
-When performing this step for multiple cases simulataneously, 
+When performing this step for multiple cases simultaneously, 
 a unique_id can be provided to prevent incorrect .fasta files being read in during the sequence retreival step.
 
-```{r query attributes}
+```r
 #for query regions
 query_attributes_intron <- getBranchpointSequence(query_intron,
                                         query_type = "region",
@@ -153,6 +160,34 @@ query_attributes_snp <- getBranchpointSequence(query_snp,
                                         query_type = "SNP",
                                         genome = "GRCh38.p5.genome.fa",
                                         bedtools_location="/Applications/apps/bedtools2/bin/bedtools")
+
+```
+Alternatively, a BSgenome object can be used instead of specifying a genome .fa file and using bedtools
+Available BSgenomes are listed on the [Bioconductor AnnotationData packages page](https://www.bioconductor.org/packages/devel/data/annotation/)
+
+```r
+#install the correct genome from Bioconductor
+source("https://bioconductor.org/biocLite.R")
+biocLite("BSgenome.Hsapiens.UCSC.hg38")
+```
+
+```{r query attributes}
+#load in BSgenome
+suppressMessages(library(BSgenome.Hsapiens.UCSC.hg38))
+genome <- BSgenome.Hsapiens.UCSC.hg38
+
+#for query regions
+query_attributes_intron <- getBranchpointSequence(query_intron,
+                                        query_type = "region",
+                                        useBSgenome = TRUE,
+                                        BSgenome = genome)
+
+
+#for query SNPs
+query_attributes_snp <- getBranchpointSequence(query_snp,
+                                        query_type = "SNP",
+                                        useBSgenome = TRUE,
+                                        BSgenome = genome)
 
 ```
 
