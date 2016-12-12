@@ -22,6 +22,16 @@ data.frame with branchpoint probaility scores for each site in query_attributes
 predicts branchpoint probability scores for each query site.
 }
 \examples{
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
+query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(query_snp,query_type = "SNP")
+query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+query_attributes <- getBranchpointSequence(query,
+query_type = "SNP",
+genome = "~/Downloads/GRCh38.p5.genome.fa",
+bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 branchpoint_predicitons <- predictBranchpoints(query_attributes)
 }
 \author{

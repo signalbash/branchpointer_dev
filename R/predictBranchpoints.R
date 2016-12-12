@@ -15,6 +15,16 @@
 #' @import parallel
 #' @importFrom stringr str_sub
 #' @examples
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+#' query_attributes <- getBranchpointSequence(query,
+#' query_type = "SNP",
+#' genome = "~/Downloads/GRCh38.p5.genome.fa",
+#' bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 #' branchpoint_predicitons <- predictBranchpoints(query_attributes)
 #' @author Beth Signal
 
@@ -88,7 +98,7 @@ predictBranchpoints <- function(query_attributes,
   #reconfigure
   branchpoint_pred <- data.frame(id=query_attributes$id,branchpoint_prob=p[,1],
                                  seq_pos0=query_attributes$seq_pos0, distance=query_attributes$to_3prime)
-  branchpoint_pred$allele_status <- stringr::str_sub(branchpoint_pred$id, -3,-1)
+  branchpoint_pred <- cbind(branchpoint_pred, allele_status = stringr::str_sub(branchpoint_pred$id, -3,-1))
 
   m <- match(branchpoint_pred$id, query_attributes$id)
   branchpoint_pred <- cbind(branchpoint_pred,
@@ -115,7 +125,7 @@ predictBranchpoints <- function(query_attributes,
 
 
   branchpoint_pred$id <- stringr::str_sub(branchpoint_pred$id,1,-8)
-  branchpoint_pred <- arrange(branchpoint_pred, id,allele_status, distance)
+  branchpoint_pred <- branchpoint_pred[order(branchpoint_pred[,1], branchpoint_pred[,5], branchpoint_pred[,4]),]
   colnames(branchpoint_pred)[which(colnames(branchpoint_pred) == "seq_pos0")] <- "nucleotide"
 
   return(branchpoint_pred)
