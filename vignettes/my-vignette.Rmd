@@ -16,7 +16,7 @@ vignette: >
 
 ### Download genome annotations
 
-Branchpointer requires a genome annotation derived from a GTF file and the fasta sequence for this genome annotation. We will be using the GENCODE annotation (http://www.gencodegenes.org/releases/current.html) as an example, although others and custom annotatations can be used.
+Branchpointer requires a genome annotation derived from a GTF file and the fasta sequence for this genome annotation. We will be using the GENCODE annotation (http://www.gencodegenes.org/releases/current.html) as an example, although others and custom annotations can be used.
 
 Create or move to a working directory where these files can be stored.
 Note that these can be large files (>1GB) when uncompressed
@@ -194,7 +194,7 @@ query_attributes_snp <- getBranchpointSequence(query_snp,
 ### Predict branchpoint probabilities 
 
 Probabilities for each site within the window are then evaluated using the branchpointer model.
-We reccomend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites.
+We recommend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites.
 U2 binding energy can be used as a measurement of branchpoint strength when the probability score is above the cutoff.
 
 ```{r predict introns, echo=FALSE}
@@ -219,7 +219,7 @@ pander::pander(snp_stats, row.names=FALSE, split.table=130, style="rmarkdown")
 ```
 
 The window scores can be plotted using plotBranchpointWindow(), with optional plots for gene and isoform structure.
-The main panel displays the probability scores of each site within the branchpoint window. The opacity of the bars is representitive of relative U2 binding energy (darker = stronger), and the lower panel shows U2 binding energy for all sites above the provided proabability cutoff.
+The main panel displays the probability scores of each site within the branchpoint window. The opacity of the bars is representative of relative U2 binding energy (darker = stronger), and the lower panel shows U2 binding energy for all sites above the provided probability cutoff.
 
 #### Branchpoint predictions in an intronic window
 
@@ -268,7 +268,7 @@ Several data.frames are created and used to predict branchpoints using branchpoi
 |chromosome | chromosome name (i.e. chr1) |
 |end | chromosome location of the site specific query |
 |strand | chromosome strand |
-|seq | RNA sequence covering the 501 nucletides surrounding the site |
+|seq | RNA sequence covering the 501 nucleotides surrounding the site |
 |exon_3prime | exon_id of the closest annotated 3' exon |
 |exon_5prime | exon_id of the closest annotated 5' exon |
 |to_3prime | distance (in nucleotides) to the closest annotated 3' exon |
@@ -280,17 +280,17 @@ Several data.frames are created and used to predict branchpoints using branchpoi
 |canon_hit3 | distance (in nucleotides) to the 3rd AG dinucleotide |
 |canon_hit4 | distance (in nucleotides) to the 4th AG dinucleotide |
 |canon_hit5 | distance (in nucleotides) to the 5th AG dinucleotide |
-|seq_neg5 | sequence identity of the nucletide -5nt from the tested site |
-|seq_neg4 | sequence identity of the nucletide -4nt from the tested site |
-|seq_neg3 | sequence identity of the nucletide -3nt from the tested site |
-|seq_neg2 | sequence identity of the nucletide -2nt from the tested site |
-|seq_neg1 | sequence identity of the nucletide -1nt from the tested site |
+|seq_neg5 | sequence identity of the nucleotide -5nt from the tested site |
+|seq_neg4 | sequence identity of the nucleotide -4nt from the tested site |
+|seq_neg3 | sequence identity of the nucleotide -3nt from the tested site |
+|seq_neg2 | sequence identity of the nucleotide -2nt from the tested site |
+|seq_neg1 | sequence identity of the nucleotide -1nt from the tested site |
 |seq_pos0 | sequence identity of the tested site |
-|seq_pos1 | sequence identity of the nucletide +1nt from the tested site |
-|seq_pos2 | sequence identity of the nucletide +2nt from the tested site |
-|seq_pos3 | sequence identity of the nucletide +3nt from the tested site |
-|seq_pos4 | sequence identity of the nucletide +4nt from the tested site |
-|seq_pos5 | sequence identity of the nucletide +5nt from the tested site |
+|seq_pos1 | sequence identity of the nucleotide +1nt from the tested site |
+|seq_pos2 | sequence identity of the nucleotide +2nt from the tested site |
+|seq_pos3 | sequence identity of the nucleotide +3nt from the tested site |
+|seq_pos4 | sequence identity of the nucleotide +4nt from the tested site |
+|seq_pos5 | sequence identity of the nucleotide +5nt from the tested site |
 
 ### predictBranchpoints
 

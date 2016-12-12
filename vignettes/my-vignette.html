@@ -84,7 +84,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2>Preparations</h2>
 <div id="download-genome-annotations" class="section level3">
 <h3>Download genome annotations</h3>
-<p>Branchpointer requires a genome annotation derived from a GTF file and the fasta sequence for this genome annotation. We will be using the GENCODE annotation (<a href="http://www.gencodegenes.org/releases/current.html" class="uri">http://www.gencodegenes.org/releases/current.html</a>) as an example, although others and custom annotatations can be used.</p>
+<p>Branchpointer requires a genome annotation derived from a GTF file and the fasta sequence for this genome annotation. We will be using the GENCODE annotation (<a href="http://www.gencodegenes.org/releases/current.html" class="uri">http://www.gencodegenes.org/releases/current.html</a>) as an example, although others and custom annotations can be used.</p>
 <p>Create or move to a working directory where these files can be stored. Note that these can be large files (&gt;1GB) when uncompressed</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">wget</span> ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.annotation.gtf.gz
 <span class="kw">gunzip</span> gencode.v24.annotation.gtf.gz
@@ -325,7 +325,7 @@ query_attributes_snp &lt;-<span class="st"> </span><span class="kw">getBranchpoi
 </div>
 <div id="predict-branchpoint-probabilities" class="section level3">
 <h3>Predict branchpoint probabilities</h3>
-<p>Probabilities for each site within the window are then evaluated using the branchpointer model. We reccomend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites. U2 binding energy can be used as a measurement of branchpoint strength when the probability score is above the cutoff.</p>
+<p>Probabilities for each site within the window are then evaluated using the branchpointer model. We recommend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites. U2 binding energy can be used as a measurement of branchpoint strength when the probability score is above the cutoff.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">branchpoint_predictions_intron &lt;-<span class="st"> </span><span class="kw">predictBranchpoints</span>(query_attributes_intron)
 
 branchpoints_intron &lt;-<span class="st"> </span>branchpoint_predictions_intron[branchpoint_predictions_intron$branchpoint_prob &gt;<span class="st"> </span><span class="fl">0.5</span>,]
@@ -564,7 +564,7 @@ pander::<span class="kw">pander</span>(snp_stats, <span class="dt">row.names=</s
 </tr>
 </tbody>
 </table>
-<p>The window scores can be plotted using plotBranchpointWindow(), with optional plots for gene and isoform structure. The main panel displays the probability scores of each site within the branchpoint window. The opacity of the bars is representitive of relative U2 binding energy (darker = stronger), and the lower panel shows U2 binding energy for all sites above the provided proabability cutoff.</p>
+<p>The window scores can be plotted using plotBranchpointWindow(), with optional plots for gene and isoform structure. The main panel displays the probability scores of each site within the branchpoint window. The opacity of the bars is representative of relative U2 binding energy (darker = stronger), and the lower panel shows U2 binding energy for all sites above the provided probability cutoff.</p>
 <div id="branchpoint-predictions-in-an-intronic-window" class="section level4">
 <h4>Branchpoint predictions in an intronic window</h4>
 <p>BRCA2 intron (ENSE00002167182.1 - ENSE00003461148.1).</p>
@@ -671,7 +671,7 @@ pander::<span class="kw">pander</span>(snp_stats, <span class="dt">row.names=</s
 </tr>
 <tr class="odd">
 <td align="left">seq</td>
-<td align="left">RNA sequence covering the 501 nucletides surrounding the site</td>
+<td align="left">RNA sequence covering the 501 nucleotides surrounding the site</td>
 </tr>
 <tr class="even">
 <td align="left">exon_3prime</td>
@@ -719,23 +719,23 @@ pander::<span class="kw">pander</span>(snp_stats, <span class="dt">row.names=</s
 </tr>
 <tr class="odd">
 <td align="left">seq_neg5</td>
-<td align="left">sequence identity of the nucletide -5nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide -5nt from the tested site</td>
 </tr>
 <tr class="even">
 <td align="left">seq_neg4</td>
-<td align="left">sequence identity of the nucletide -4nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide -4nt from the tested site</td>
 </tr>
 <tr class="odd">
 <td align="left">seq_neg3</td>
-<td align="left">sequence identity of the nucletide -3nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide -3nt from the tested site</td>
 </tr>
 <tr class="even">
 <td align="left">seq_neg2</td>
-<td align="left">sequence identity of the nucletide -2nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide -2nt from the tested site</td>
 </tr>
 <tr class="odd">
 <td align="left">seq_neg1</td>
-<td align="left">sequence identity of the nucletide -1nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide -1nt from the tested site</td>
 </tr>
 <tr class="even">
 <td align="left">seq_pos0</td>
@@ -743,23 +743,23 @@ pander::<span class="kw">pander</span>(snp_stats, <span class="dt">row.names=</s
 </tr>
 <tr class="odd">
 <td align="left">seq_pos1</td>
-<td align="left">sequence identity of the nucletide +1nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide +1nt from the tested site</td>
 </tr>
 <tr class="even">
 <td align="left">seq_pos2</td>
-<td align="left">sequence identity of the nucletide +2nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide +2nt from the tested site</td>
 </tr>
 <tr class="odd">
 <td align="left">seq_pos3</td>
-<td align="left">sequence identity of the nucletide +3nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide +3nt from the tested site</td>
 </tr>
 <tr class="even">
 <td align="left">seq_pos4</td>
-<td align="left">sequence identity of the nucletide +4nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide +4nt from the tested site</td>
 </tr>
 <tr class="odd">
 <td align="left">seq_pos5</td>
-<td align="left">sequence identity of the nucletide +5nt from the tested site</td>
+<td align="left">sequence identity of the nucleotide +5nt from the tested site</td>
 </tr>
 </tbody>
 </table>
