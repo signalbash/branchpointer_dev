@@ -20,15 +20,26 @@
 #' @import data.table
 #' @importClassesFrom Biostrings DNAStringSet
 #' @importFrom Biostrings complement
+#' @importFrom Biostrings getSeq
+#' @importFrom BSgenome.Hsapiens.UCSC.hg38 BSgenome.Hsapiens.UCSC.hg38
 #' @examples
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
+#'
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 #' query_attributes <- getBranchpointSequence(query,
-#' query_type = "SNP"
-#' genome = "GRCh38.p5.genome.fa",
+#' query_type = "SNP",
+#' genome = "~/Downloads/GRCh38.p5.genome.fa",
 #' bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 #'
-#' genome <- BSgenome.Hsapiens.UCSC.hg38
+#' query <- makeRegions("ENSE00003541068.1", "exon_id", exons)
+#'
+#' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #' query_attributes <- getBranchpointSequence(query,
-#' query_type = "region"
+#' query_type = "region",
 #' useBSgenome = TRUE,
 #' BSgenome = genome)
 
@@ -135,7 +146,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
   }
 
   if(useBSgenome){
-    bed_seq <- getSeq(BSgenome, bed$chromosome, start=bed$start+1,
+    bed_seq <- Biostrings::getSeq(BSgenome, bed$chromosome, start=bed$start+1,
                    end=bed$end, strand=bed$strand)
     s <- as.character(bed_seq)
     ids <- rownames(bed)

@@ -44,14 +44,23 @@ Get branchpoint sequence features
 Gets intronic sequence covering the branchpoint window and extracts predictive features
 }
 \examples{
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
+
+query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(query_snp,query_type = "SNP")
+query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 query_attributes <- getBranchpointSequence(query,
-query_type = "SNP"
-genome = "GRCh38.p5.genome.fa",
+query_type = "SNP",
+genome = "~/Downloads/GRCh38.p5.genome.fa",
 bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 
-genome <- BSgenome.Hsapiens.UCSC.hg38
+query <- makeRegions("ENSE00003541068.1", "exon_id", exons)
+
+genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 query_attributes <- getBranchpointSequence(query,
-query_type = "region"
+query_type = "region",
 useBSgenome = TRUE,
 BSgenome = genome)
 }
