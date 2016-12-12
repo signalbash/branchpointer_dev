@@ -15,12 +15,16 @@
 #' @importFrom cowplot ggdraw
 #' @importFrom cowplot draw_plot
 #' @examples
-#' exons <- readExonAnnotation("gencode.v24.exons.txt")
-#' query <- readQueryFile("SNP_example.txt",query_type = "SNP")
-#' query <- getQueryLoc(query,query_type="SNP",exons = exons, filter=FALSE)
-#' query_attributes <- getBranchpointSequence(query,query_type = "SNP",
-#' genome = "GRCh38.p5.genome.fa",
-#' bedtools_location="/Applications/bedtools2/bin/bedtools")
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+#' query_attributes <- getBranchpointSequence(query,
+#' query_type = "SNP",
+#' genome = "~/Downloads/GRCh38.p5.genome.fa",
+#' bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 #' branchpoint_predictions <- predictBranchpoints(query_attributes)
 #' plotBranchpointWindow(query$id[1],  branchpoint_predictions,
 #' query_attributes, plot_mutated = TRUE, exons = exons)
@@ -46,8 +50,8 @@ plotBranchpointWindow <- function(query_name,
   #make plots for reference sequence
 
   #probability score by sequence position
-  plot_prob_ref <- ggplot(branchpoint_mutated_ref, aes(x = distance, y = branchpoint_prob, fill = nucleotide,
-                                           col = nucleotide,alpha = U2_binding_energy)) +
+  plot_prob_ref <- ggplot(branchpoint_mutated_ref, aes_string(x = 'distance', y = 'branchpoint_prob', fill = 'nucleotide',
+                                           col = 'nucleotide',alpha = 'U2_binding_energy')) +
     geom_bar(stat = "identity") +
     scale_y_continuous(name = "branchpointer probability score",limits = c(0,1),
                        breaks = seq(0,1,0.10), labels = c("0.00","0.10","0.20","0.30","0.40","0.50",
@@ -62,7 +66,7 @@ plotBranchpointWindow <- function(query_name,
 
   #U2 binding energy by sequence position
   plot_U2_ref <- ggplot(branchpoint_mutated_ref[branchpoint_mutated_ref$branchpoint_prob >= probability_cutoff,],
-              aes(x = distance, y = U2_binding_energy)) +
+              aes_string(x = 'distance', y = 'U2_binding_energy')) +
     geom_bar(stat = "identity",width = 1) +
     scale_x_continuous(limits = c(-45,-17), labels = seq(45,17,-5),
                        breaks = seq(-45,-17, 5), name ="Distance to 3' exon (nt)") +
@@ -71,7 +75,7 @@ plotBranchpointWindow <- function(query_name,
                        breaks = seq(0,9,3), labels = c("0.00","3.00","6.00","9.00"))
 
   #Sequence identity
-  plot_seq_ref <- ggplot(branchpoint_mutated_ref, aes(x = distance, y = 1, col = nucleotide,label = nucleotide)) +
+  plot_seq_ref <- ggplot(branchpoint_mutated_ref, aes_string(x = 'distance', y = 1, col = 'nucleotide',label = 'nucleotide')) +
     geom_text(size = 4, family = "Courier") +
     scale_color_manual(values = mercer_nt_cols,drop = TRUE,
                        limits = levels(branchpoint_mutated_ref$nucleotide)) +
@@ -85,8 +89,8 @@ plotBranchpointWindow <- function(query_name,
     branchpoint_mutated_alt <- branchpoint_mutated[branchpoint_mutated$allele_status == "ALT",]
 
     #probability score by sequence position
-    plot_prob_alt <- ggplot(branchpoint_mutated_alt, aes(x = distance, y = branchpoint_prob, fill = nucleotide,
-                                             col = nucleotide,alpha = U2_binding_energy)) +
+    plot_prob_alt <- ggplot(branchpoint_mutated_alt, aes_string(x = 'distance', y = 'branchpoint_prob', fill = 'nucleotide',
+                                             col = 'nucleotide',alpha = 'U2_binding_energy')) +
       geom_bar(stat = "identity") +
       scale_y_continuous(name = "branchpointer probability score",limits = c(0,1),
                          breaks = seq(0,1,0.10), labels = c("0.00","0.10","0.20","0.30","0.40","0.50",
@@ -103,7 +107,7 @@ plotBranchpointWindow <- function(query_name,
 
     #U2 binding energy by sequence position
     plot_U2_alt <- ggplot(branchpoint_mutated_alt[branchpoint_mutated_alt$branchpoint_prob >= probability_cutoff,],
-                aes(x = distance, y = U2_binding_energy)) +
+                aes_string(x = 'distance', y = 'U2_binding_energy')) +
       geom_bar(stat = "identity",width = 1) +
       scale_x_continuous(limits = c(-45,-17), labels = seq(45,17,-5),
                          breaks = seq(-45,-17, 5), name ="Distance to 3' exon (nt)") +
@@ -112,7 +116,7 @@ plotBranchpointWindow <- function(query_name,
                          breaks = seq(0,9,3), labels = c("0.00","3.00","6.00","9.00"))
 
     #Sequence identity
-    plot_seq_alt <- ggplot(branchpoint_mutated_alt, aes(x = distance, y = 1, col = nucleotide,label = nucleotide)) +
+    plot_seq_alt <- ggplot(branchpoint_mutated_alt, aes_string(x = 'distance', y = 1, col = 'nucleotide',label = 'nucleotide')) +
       geom_text(size = 4, family = "Courier") +
       scale_color_manual(values = mercer_nt_cols,drop = TRUE,
                          limits = levels(branchpoint_mutated_ref$nucleotide)) +
@@ -129,13 +133,13 @@ plotBranchpointWindow <- function(query_name,
                                      grepl("REF",query_attributes$id))[1],]$seq
     pos <- query_attributes[which(grepl(query_name, query_attributes$id) &
                                      grepl("REF",query_attributes$id))[1],]$to_3prime
-    seq_1 <- unlist(str_split(str_sub(seq,251 + (pos - 50),250 + pos),""))
+    seq_1 <- unlist(stringr::str_split(stringr::str_sub(seq,251 + (pos - 50),250 + pos),""))
 
     seq <- query_attributes[which(grepl(query_name, query_attributes$id) &
                                      grepl("ALT",query_attributes$id))[1],]$seq
     pos <- query_attributes[which(grepl(query_name, query_attributes$id) &
                                      grepl("ALT",query_attributes$id))[1],]$to_3prime
-    seq_2 <- unlist(str_split(str_sub(seq,251 + (pos - 50),250 + pos),""))
+    seq_2 <- unlist(stringr::str_split(stringr::str_sub(seq,251 + (pos - 50),250 + pos),""))
 
     whole_seq <- data.frame(nt = c(seq_1, seq_2),
                            pos = rep(seq(-50,-1,1),2),
@@ -143,7 +147,7 @@ plotBranchpointWindow <- function(query_name,
     mut_pos <- whole_seq$pos[which(whole_seq$nt[whole_seq$set == "REF"] !=
                                     whole_seq$nt[whole_seq$set == "ALT"])]
 
-    plot_seq_comparison <- ggplot(whole_seq, aes(x = pos, y = set, col = nt,label = nt)) +
+    plot_seq_comparison <- ggplot(whole_seq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
       geom_rect(xmin = mut_pos - 0.5,xmax = mut_pos + 0.5, ymin = 0.5, ymax = 0.5 + 2,
                 col = NA, fill = "grey90") +
       geom_text(size = 4, family = "Courier") +
@@ -218,11 +222,11 @@ plotBranchpointWindow <- function(query_name,
       transcripts_lines$transcript_id <- paste0(transcripts_lines$transcript_id, " (-)")
     }
 
-    structure_plot <- ggplot(transcripts, aes(xmin = start, xmax = start + length,
-                                             ymin = transcript_id_num - 0.4,
-                                             ymax = transcript_id_num + 0.4, fill = factor(SNP_exon))) +
-      geom_segment(data = transcripts_lines, aes(x = min,xend = max, y = transcript_id_num,
-                                                 yend = transcript_id_num)) +
+    structure_plot <- ggplot(transcripts, aes_string(xmin = 'start', xmax = 'start + length',
+                                              ymin = 'transcript_id_num - 0.4',
+                                              ymax = 'transcript_id_num + 0.4', fill = 'factor(SNP_exon)')) +
+      geom_segment(data = transcripts_lines, aes_string(x = 'min',xend = 'max', y = 'transcript_id_num',
+                                                 yend = 'transcript_id_num')) +
       geom_rect() +
       scale_fill_manual(values = c("black","blue","grey60")) +
       scale_y_continuous(breaks = seq(-1, min(transcripts_lines$transcript_id_num),-1),

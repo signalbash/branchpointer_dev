@@ -11,8 +11,11 @@
 #' @export
 #' @import data.table
 #' @examples
-#' query <- readQueryFile("testSNP.txt", query_type = "SNP")
-#' query = readQueryFile("testRegion.txt", query_type = "region")
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "SNP")
+#'
+#' query_snp <- system.file("extdata","intron_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "region")
 #' @author Beth Signal
 
 readQueryFile <- function(query_file, query_type){

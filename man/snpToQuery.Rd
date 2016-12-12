@@ -19,7 +19,7 @@ Searches Biomart for refsnp ids, and pulls genomic location and sequence identit
 Reformats alleles so each query has only one alternative allele
 }
 \examples{
-mart <- useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
+mart <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
 query <- snpToQuery("rs17000647", mart)
 }
 \author{

@@ -31,12 +31,16 @@ ggplot2 plot with branchpoint features in the specified intronic region
 Plots branchpointer predictions
 }
 \examples{
-exons <- readExonAnnotation("gencode.v24.exons.txt")
-query <- readQueryFile("SNP_example.txt",query_type = "SNP")
-query <- getQueryLoc(query,query_type="SNP",exons = exons, filter=FALSE)
-query_attributes <- getBranchpointSequence(query,query_type = "SNP",
-genome = "GRCh38.p5.genome.fa",
-bedtools_location="/Applications/bedtools2/bin/bedtools")
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
+query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(query_snp,query_type = "SNP")
+query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+query_attributes <- getBranchpointSequence(query,
+query_type = "SNP",
+genome = "~/Downloads/GRCh38.p5.genome.fa",
+bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
 branchpoint_predictions <- predictBranchpoints(query_attributes)
 plotBranchpointWindow(query$id[1],  branchpoint_predictions,
 query_attributes, plot_mutated = TRUE, exons = exons)

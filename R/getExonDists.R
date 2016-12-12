@@ -15,7 +15,12 @@
 #' and the identifiers for the 3' and 5' exons.
 #' @export
 #' @examples
-#' exons_dists <- getExonDists(query_line, exons)
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query_line <- readQueryFile(query_snp,query_type = "SNP")[1,]
+#' exons_dists <- getExonDists(query_line, exons, query_type = "SNP")
 #' @author Beth Signal
 
 getExonDists <- function(query_line, exon_annotation, query_type){

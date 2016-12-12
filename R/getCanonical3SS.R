@@ -8,8 +8,9 @@
 #' @return Locations of the first five AG dinucleotides
 #' @export
 #' @examples
-#' AG_seq_positions <- gregexpr("AG",sequence, 252,501,perl=TRUE)
-#' canon_hits <- getCanonical3SS(AG_seq_positions)
+#' sequence <- paste(c("A","T","C","G")[sample(1:4, 501, replace=TRUE)] , collapse="")
+#' AG_seq_positions <- gregexpr("AG",sequence, 252,501)
+#' canon_hits <- getCanonical3SS(AG_seq_positions[[1]])
 #' @author Beth Signal
 
 getCanonical3SS <- function(ag){

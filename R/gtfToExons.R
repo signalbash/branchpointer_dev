@@ -10,7 +10,7 @@
 #' @import stringr
 #' @importFrom utils write.table
 #' @examples
-#' exons <- gtfToExons("gencode.v24.annotation.gtf", output_file="gencode.v24.exons.txt")
+#' exons <- gtfToExons("~/Downloads/gencode.v24.annotation.small.gtf", output_file="gencode.v24.exons.txt")
 #' @author Beth Signal
 
 gtfToExons <- function(gtf, output_file=NA){

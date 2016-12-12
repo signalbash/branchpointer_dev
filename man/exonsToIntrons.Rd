@@ -21,7 +21,8 @@ for exculsion of non-branchpoint region SNPs
 Returns a character vector of chromosome_location
 }
 \examples{
-exons <- readExonAnnotation("gencode.v24.exons.txt")
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
 introns <- exonsToIntrons(exons, 50)
 }
 \author{

@@ -7,7 +7,7 @@
 #' @export
 #' @import stringr
 #' @examples
-#' gtf <- as.data.frame(data.table::fread("gencode.v24.annotation.gtf"))
+#' gtf <- as.data.frame(data.table::fread("~/Downloads/gencode.v24.annotation.gtf"))
 #' gtf$gene_id <- getGtfAttribute(gtf, "gene_id")
 #' @author Beth Signal
 

@@ -33,9 +33,13 @@ data.frame with the query and its location relative to the 3' and 5' exons
 Finds the closest annotated exons from genomic co-ordinates in a branchpointer query data.frame.
 }
 \examples{
-exons <- readExonAnnotation("gencode.v24.exons.txt")
-query <- readQueryFile("SNP_example.txt",query_type = "SNP")
-query <- getQueryLoc(query,query_type="SNP",exons = exons, filter=FALSE)
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+package = "branchpointer")
+exons <- readExonAnnotation(small_exons)
+
+query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(query_snp,query_type = "SNP")
+query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 }
 \author{
 Beth Signal

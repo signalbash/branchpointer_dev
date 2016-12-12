@@ -17,9 +17,13 @@
 #' @export
 #' @import parallel
 #' @examples
-#' exons <- readExonAnnotation("gencode.v24.exons.txt")
-#' query <- readQueryFile("SNP_example.txt",query_type = "SNP")
-#' query <- getQueryLoc(query,query_type="SNP",exons = exons, filter=FALSE)
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
+#'
+#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 #' @author Beth Signal
 
 getQueryLoc <- function(query, query_type,max_dist=50, filter=TRUE, exons,

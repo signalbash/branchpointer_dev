@@ -9,7 +9,8 @@
 #' @return vector of chromosome names and intronic locations
 #' @export
 #' @examples
-#' exons <- readExonAnnotation("gencode.v24.exons.txt")
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
 #' introns <- exonsToIntrons(exons, 50)
 #' @author Beth Signal
 

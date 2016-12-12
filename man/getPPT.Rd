@@ -20,7 +20,8 @@ between the test site and the annotated 3'exon.
 Returns the distance to the start of the longest PPT, and its length.
 }
 \examples{
-pyra_df <- getPPT(query_attributes[1,])
+attributes_line <- c("id", "1000","27", paste(c("A","G",rep(c("C","T"),4))[sample(1:10, 501, replace=TRUE)] , collapse=""))
+pyra_df <- getPPT(attributes_line)
 }
 \author{
 Beth Signal

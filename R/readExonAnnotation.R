@@ -8,8 +8,11 @@
 #' @return exon annotation data.frame
 #' @export
 #' @examples
-#' exons <- readExonAnnotation("gencode.v24.annotation.exons.txt")
-#' exons <- readExonAnnotation("gencode.v24.annotation.gtf")
+#' exons <- readExonAnnotation("~/Downloads/gencode.v24.annotation.small.gtf")
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#'
+#' exons <- readExonAnnotation(small_exons)
 #' @author Beth Signal
 
 readExonAnnotation <- function(exon_file, output_file=NA){

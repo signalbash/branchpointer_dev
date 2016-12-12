@@ -10,7 +10,8 @@
 #' @export
 #' @import plyr
 #' @examples
-#' pyra_df <- getPPT(query_attributes[1,])
+#' attributes_line <- c("id", "1000","27", paste(c("A","G",rep(c("C","T"),4))[sample(1:10, 501, replace=TRUE)] , collapse=""))
+#' pyra_df <- getPPT(attributes_line)
 #' @author Beth Signal
 
 getPPT <- function(attributes_line){

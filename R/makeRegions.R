@@ -10,6 +10,9 @@
 #' @return data.frame with frormatted query
 #' @export
 #' @examples
+#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' package = "branchpointer")
+#' exons <- readExonAnnotation(small_exons)
 #' windowquery <- makeRegions("ENSG00000139618", "gene_id", exons)
 #' windowquery <- makeRegions("ENST00000357654", "transcript_id", exons)
 #' windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)

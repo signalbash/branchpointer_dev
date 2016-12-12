@@ -9,7 +9,7 @@
 #' @import biomaRt
 #' @importFrom stringr str_split
 #' @examples
-#' mart <- useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
+#' mart <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
 #' query <- snpToQuery("rs17000647", mart)
 #' @author Beth Signal
 

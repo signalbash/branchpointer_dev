@@ -19,7 +19,7 @@ exon annotation data.frame
 Converts a GTF annotation to exon locations
 }
 \examples{
-exons <- gtfToExons("gencode.v24.annotation.gtf", output_file="gencode.v24.exons.txt")
+exons <- gtfToExons("~/Downloads/gencode.v24.annotation.small.gtf", output_file="gencode.v24.exons.txt")
 }
 \author{
 Beth Signal
