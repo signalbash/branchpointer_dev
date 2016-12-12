@@ -1,12 +1,12 @@
 ---
-title: "Branchpointer: prediction of human splicing branchpoint sites"
+title: 'Branchpointer: prediction of human splicing branchpoint sites'
 author: "Beth Signal"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Branchpointer}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+date: '`r Sys.Date()`'
+output:
+  pdf_document: default
+  html_document: default
+vignette: |
+  %\VignetteIndexEntry{Branchpointer} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 ## Branchpointer: prediction of human splicing branchpoint sites
 
@@ -28,8 +28,13 @@ gunzip gencode.v24.annotation.gtf.gz
 wget ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/GRCh38.p5.genome.fa.gz
 gunzip GRCh38.p5.genome.fa.gz
 ```
+```{r, load pander, echo = FALSE}
+suppressMessages(library(pander))
+panderOptions('table.alignment.default',"left")
+```
 
-### Read in exon annotations
+
+### 1. Read in exon annotations
 ```{r load branchpointer, echo=FALSE}
 suppressMessages(library(branchpointer))
 ```
@@ -43,22 +48,24 @@ exons <- readExonAnnotation("gencode.v24.annotation.exons.txt")
 ```
 We will load in a small formatted exon annotation file from the package data
 ```{r read exons}
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", package = "branchpointer")
+small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", 
+                           package = "branchpointer")
 exons <- readExonAnnotation(small_exons)
 ```
 
 ## Branchpoint predictions
 
-### Read query and calculate location attributes
+### 2. Read query and calculate location attributes
 
-#### Intronic window queries
+#### 2.1. Intronic window queries
 Query regions must contain a branchpoint window - that is the region located at -18 to -44 from the 3' splice site. 
 Each region given will be treated as only one query, and associated with the closest 3' exon. 
 To cover multiple 3'exons, please provide branchpointer with seperate region queries.
 For known regions, queries can be supplied as a table:
 
 ```{r read introns}
-query_intron <- system.file("extdata","intron_example.txt", package = "branchpointer")
+query_intron <- system.file("extdata","intron_example.txt", 
+                            package = "branchpointer")
 query_intron <- readQueryFile(query_intron,query_type = "region")
 
 pander::pander(query_intron, row.names=FALSE, split.table=130, style="rmarkdown")
@@ -76,7 +83,8 @@ This can be done by setting `use_parallel=TRUE` and supplying a `cores` number g
 Note that if the number of specified cores is greater than the number available, the maximum number available will be utilised
 
 ```r
-query_intron <- getQueryLoc(query_intron,query_type="region",exons = exons, use_parallel=TRUE, cores=4)
+query_intron <- getQueryLoc(query_intron,query_type="region",
+                            exons = exons, use_parallel=TRUE, cores=4)
 ```
 
 Alternatively, to generate branchpoint window region queries by exon annotations, the exon annotation file can be used:
@@ -96,7 +104,7 @@ query_intron_make <- lapply(c("ENSE00003541068.1", "ENSE00003461148.1"),
 query_intron_make <- do.call("rbind", query_intron_make)
 ```
 
-#### SNP queries
+#### 2.2. SNP queries
 
 Query SNPs should be located nearby a branchpoint window to have any potential effects on branchpoint architecture
 SNP queries can be supplied as a table formatted as follows:
@@ -126,7 +134,7 @@ Filtering prior to exon associations can speed up processing in instances where 
 Queries can be provided as stranded or unstranded. 
 In the case of unstranded queries, any value except `"+"` or `"-"` will cause branchpointer to run on both strands.
 
-### Get sequence attributes for query regions
+### 3. Get sequence attributes for query regions
 
 Sequences covering each site +/- 250 nt are retrieved using bedtools. 
 The absolute location of the bedtools binary must be provided for calls from within R.
@@ -191,7 +199,7 @@ query_attributes_snp <- getBranchpointSequence(query_snp,
 
 ```
 
-### Predict branchpoint probabilities 
+### 4. Predict branchpoint probabilities 
 
 Probabilities for each site within the window are then evaluated using the branchpointer model.
 We recommend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites.
@@ -204,7 +212,9 @@ branchpoint_predictions_intron <- suppressMessages(predictBranchpoints(query_att
 ```{r}
 branchpoint_predictions_intron <- predictBranchpoints(query_attributes_intron)
 
-branchpoints_intron <- branchpoint_predictions_intron[branchpoint_predictions_intron$branchpoint_prob > 0.5,]
+keep_bps <- which(branchpoint_predictions_intron$branchpoint_prob > 0.5)
+
+branchpoints_intron <- branchpoint_predictions_intron[keep_bps,]
 
 pander::pander(head(arrange(branchpoints_intron, plyr::desc(branchpoint_prob))),
                row.names=FALSE, split.table=130, style="rmarkdown")
@@ -225,7 +235,8 @@ The main panel displays the probability scores of each site within the branchpoi
 
 BRCA2 intron (ENSE00002167182.1 - ENSE00003461148.1).
 ```{r Figure 1, fig.width=6, fig.height=6}
-plotBranchpointWindow(query_intron$id[2], branchpoint_predictions_intron,query_attributes_intron,
+plotBranchpointWindow(query_intron$id[2], branchpoint_predictions_intron,
+                      query_attributes_intron,
                       probability_cutoff = 0.5,plot_mutated = FALSE,
                       plot_structure = TRUE,exons = exons)
 

@@ -1,0 +1,1769 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdfetex 2016.2.18)  12 DEC 2016 13:34
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**\nonstopmode \catcode126=12 \def\normaltilde{~}\catcode126=13 \let~\normaltil
+de  \input ./vignettes/my-vignette.md
+(./vignettes/my-vignette.md
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.5 output: rmarkdown::html_
+                            vignette
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! You can't use `macro parameter character #' in math mode.
+l.11 #
+      # Branchpointer: prediction of human splicing branchpoint sites
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in math mode.
+l.11 ##
+        Branchpointer: prediction of human splicing branchpoint sites
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.12 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (84.63647pt too wide) in paragraph at lines 1--12
+\tenrm "2016-08-20" out-put: rmarkdown::html$[]\teni ignettevignette \tenrm :\t
+eni > \tensy ^^@ ^^@ ^^@\teni Branchpointer \tenrm : \teni predictionofhumanspl
+icingbranchpointsites$ |
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\tenrm "
+.\tenrm 2
+.\tenrm 0
+.\tenrm 1
+.\tenrm 6
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.13 #
+      # Introduction
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.13 ##
+        Introduction
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.15 #
+      # Preparations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.15 ##
+        Preparations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.17 #
+      ## Download genome annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.17 ##
+       # Download genome annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.17 ###
+         Download genome annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+
+Overfull \hbox (45.97176pt too wide) in paragraph at lines 19--20
+\tenrm genome an-no-ta-tion. We will be us-ing the GEN-CODE an-no-ta-tion (http
+://www.gencodegenes.org/releases/current.html)|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm g
+.\tenrm e
+.\tenrm n
+.\tenrm o
+.\tenrm m
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.25 ...tp://ftp.sanger.ac.uk/pub/gencode/Gencode_
+                                                  human/release_24/gencode.v...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.27 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (182.99406pt too wide) in paragraph at lines 24--27
+[]\tenrm ```bash wget ftp://ftp.sanger.ac.uk/pub/gencode/Gencode$[]\teni uman=r
+elease[]\tenrm 4\teni =gencode:v\tenrm 24\teni :annotation:gtf:gzgunzipgencode:
+v\tenrm 24\teni :annotation:gtf:gz$ |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm \ (ligature ``)
+.\tenrm `
+.\tenrm b
+.\tenrm a
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.28 ...tp://ftp.sanger.ac.uk/pub/gencode/Gencode_
+                                                  human/release_24/GRCh38.p5...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.31 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (123.49805pt too wide) in paragraph at lines 28--31
+[]\tenrm wget ftp://ftp.sanger.ac.uk/pub/gencode/Gencode$[]\teni uman=release[]
+\tenrm 4\teni =GRCh\tenrm 38\teni :p\tenrm 5\teni :genome:fa:gzgunzipGRCh\tenrm
+ 38\teni :p\tenrm 5\teni :genome:fa:gz\tenrm \`$ |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm w
+.\tenrm g
+.\tenrm e
+.\tenrm t
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.32 #
+      ## Read in exon annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.32 ##
+       # Read in exon annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.32 ###
+         Read in exon annotations
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.44 #
+      # Branchpoint predictions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.44 ##
+        Branchpoint predictions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.46 #
+      ## Read query and calculate location attributes
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.46 ##
+       # Read query and calculate location attributes
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.46 ###
+         Read query and calculate location attributes
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.48 #
+      ### Intronic window queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.48 ##
+       ## Intronic window queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.48 ###
+        # Intronic window queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.48 ####
+          Intronic window queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.56 query_
+           intron <- readQueryFile("intron_example.txt",query_type = "region")
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.57 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.58 pander::pander(query_
+                          intron, row.names=FALSE, split.table=130, style="r...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.60 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.63 |      id      |  chromosome  |  chrom_
+                                            start  |  chrom_end  |  strand  |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.67 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.71 query_
+           intron <- getQueryLoc(query_intron,query_type="region",exons = ex...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.72 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.73 pander::pander(query_
+                          intron, row.names=FALSE, split.table=130, style="r...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.75 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Misplaced alignment tab character &.
+l.78 |       &
+              nbsp;       |      id      |  chromosome  |  chrom_start  |  c...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.78 ...   |      id      |  chromosome  |  chrom_
+                                                  start  |  chrom_end  |  st...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.82 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Misplaced alignment tab character &.
+l.87 |       &
+              nbsp;       |  same_gene  |    exon_3prime    |    exon_5prime...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.87 |       &nbsp;       |  same_
+                                  gene  |    exon_3prime    |    exon_5prime...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.91 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.93 This can be done by setting `use_
+                                      parallel=TRUE` and supplying a `cores`...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.95 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (572.3216pt too wide) in paragraph at lines 92--95
+\tenrm can be done by set-ting `use$[]\teni arallel \tenrm = \teni TRUE\tenrm `
+\teni andsupplyinga\tenrm `\teni cores\tenrm `\teni numbergreaterthan\tenrm 1\t
+eni tofunctionswiththisargument:Notethatifthenumberofspecifiedcoresisgreatertha
+nthenumberavailable; themaximumnumberavailablewillbeutilised$ |
+
+\hbox(6.94444+2.86108)x469.75499, glue set - 1.0
+.\tenrm c
+.\tenrm a
+.\tenrm n
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm b
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.97 query_
+           intron <- getQueryLoc(query_intron,query_type="region",exons = ex...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.99 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.105 query_
+            intron_make <- makeRegions("ENSE00003541068.1", "exon_id", exons)
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.106 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.107 pander::pander(query_
+                           intron_make, row.names=FALSE, split.table=130, st...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.109 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.112 |        id         |  chromosome  |  chrom_
+                                                  start  |  chrom_end  |  st...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.115 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+[1{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.120 |    exon_
+                3prime    |    exon_5prime    |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.123 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! You can't use `macro parameter character #' in horizontal mode.
+l.125 #
+       or for multiple ids
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.126 query_
+            intron_make <- lapply(c("ENSE00003541068.1", "ENSE00003461148.1"),
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.128 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (139.30672pt too wide) in paragraph at lines 124--128
+[]\tenrm ```r or for mul-ti-ple ids query$[]\teni ntron[]ake < \tensy ^^@\teni 
+lapply\tenrm (\teni c\tenrm ("\teni ENSE\tenrm 00003541068\teni :\tenrm 1"\teni
+ ; \tenrm "\teni ENSE\tenrm 00003461148\teni :\tenrm 1")\teni ; makeRegions; \t
+enrm "\teni exon[]d\tenrm "\teni ; exons\tenrm )$ |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm \ (ligature ``)
+.\tenrm `
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.129 query_
+            intron_make <- do.call("rbind", query_intron_make)
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.131 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.132 #
+       ### SNP queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.132 ##
+        ## SNP queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.132 ###
+         # SNP queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.132 ####
+           SNP queries
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.139 query_
+            snp <- readQueryFile("SNP_example.txt",query_type = "SNP")
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.141 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.145 mart <- useMart("ENSEMBL_
+                               MART_SNP", dataset="hsapiens_snp",host="www.e...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.146 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.147 query_
+            snp <- snpToQuery(c("rs17000647","rs5031002","rs998731"), mart_s...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.149 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.155 query_
+            snp <- getQueryLoc(query_snp,query_type="SNP",exons = exons, fil...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.159 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (1339.87428pt too wide) in paragraph at lines 154--159
+[]\tenrm ```r query$[]\teni np < \tensy ^^@\teni getQueryLoc\tenrm (\teni query
+[]np; query[]ype \tenrm = "\teni SNP\tenrm "\teni ; exons \tenrm = \teni exons;
+ filter \tenrm = \teni FALSE\tenrm )\`\teni EachSNPwillbeassociatedwiththeclose
+st\tenrm 3[]\teni exon:IfSNPsaredistalfrombranchpointwindows; themax[]istargume
+ntwillremoveanygreaterthanthespecifieddistance:Filteringpriortoexonassociations
+canspeedupprocessingininstanceswhereitisunknownifthemajorityofSNPsfallnearbybra
+nchpointwindows:$ |
+
+\hbox(7.51782+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm \ (ligature ``)
+.\tenrm `
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.163 #
+       ## Get sequence attributes for query regions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.163 ##
+        # Get sequence attributes for query regions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.163 ###
+          Get sequence attributes for query regions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.174 ...in query, 1 in .fasta), the argument `rm_
+                                                  chr` should be set to `FAL...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.175 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (5.607pt too wide) in paragraph at lines 179--180
+[]\tenrm All fea-tures re-quired for the model to pre-dict branch-point prob-a-
+bil-ity are con-tained within this data.frame. |
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm A
+.\tenrm l
+.\tenrm l
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.182 a unique_
+               id can be provided to prevent incorrect .fasta files being re...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.183 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (254.78542pt too wide) in paragraph at lines 181--183
+[]\tenrm When per-form-ing this step for mul-ti-ple cases sim-u-la-ta-neously, 
+a unique$[]\teni dcanbeprovidedtopreventincorrect:fastafilesbeingreadinduringth
+esequenceretreivalstep:$ |
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm W
+.\tenrm h
+.\tenrm e
+.\tenrm n
+.etc.
+
+! You can't use `macro parameter character #' in horizontal mode.
+l.186 #
+       for query regions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.187 query_
+            attributes_intron <- getBranchpointSequence(query_intron,
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.191 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (26.5088pt too wide) in paragraph at lines 185--191
+\tenrm "\teni region\tenrm "\teni ; genome \tenrm = "\teni GRCh\tenrm 38\teni :
+p\tenrm 5\teni :genome:fa\tenrm "\teni ; bedtools[]ocation \tenrm = "\teni =App
+lications=apps=bedtools\tenrm 2\teni =bin=bedtools\tenrm ")$ |
+
+\hbox(7.5+2.5)x469.75499
+.\tenrm "
+.\teni r
+.\kern0.27779
+.\teni e
+.\teni g
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.193 #
+       for query SNPs
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.194 query_
+            attributes_snp <- getBranchpointSequence(query_snp,
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.199 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (21.40874pt too wide) in paragraph at lines 193--199
+[]\tenrm for query SNPs query$[]\teni ttributes[]np < \tensy ^^@\teni getBranch
+pointSequence\tenrm (\teni query[]np; query[]ype \tenrm = "\teni SNP\tenrm "\te
+ni ; genome \tenrm =|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm f
+.\tenrm o
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.200 #
+       ## Predict branchpoint probabilities
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.200 ##
+        # Predict branchpoint probabilities
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.200 ###
+          Predict branchpoint probabilities
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.210 branchpoint_
+                  predictions_intron <- predictBranchpoints(query_attributes...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.211 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.212 branchpoints_
+                   intron <- branchpoint_predictions_intron[branchpoint_pred...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.212 ...anchpoint_predictions_intron$branchpoint_
+                                                  prob > 0.5,]
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.213 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (4.05394pt too wide) in paragraph at lines 212--213
+[]\tenrm branchpoints$[]\teni ntron < \tensy ^^@\teni branchpoint[]redictions[]
+ntron\tenrm [\teni branchpoint[]redictions[]ntron$\tenrm branchpoint$[]\teni ro
+b >|
+
+\hbox(7.5+2.86108)x469.75499
+.\hbox(0.0+0.0)x20.0
+.\tenrm b
+.\tenrm r
+.\tenrm a
+.\tenrm n
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.214 pander::pander(head(arrange(branchpoints_
+                                               intron, plyr::desc(branchpoin...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.217 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (68.74495pt too wide) in paragraph at lines 214--217
+[]\tenrm pander::pander(head(arrange(branchpoints$[]\teni ntron; plyr \tenrm ::
+ \teni desc\tenrm (\teni branchpoint[]rob\tenrm )))\teni ; row:names \tenrm = \
+teni FALSE; split:table \tenrm =|
+
+\hbox(7.5+2.86108)x469.75499
+.\hbox(0.0+0.0)x20.0
+.\tenrm p
+.\tenrm a
+.\tenrm n
+.\tenrm d
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.220 |      id      |  branchpoint_
+                                    prob  |  nucleotide  |  distance  |  all...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.227 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.232 |    exon_
+                3prime    |    exon_5prime    |  U2_binding_energy  |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.239 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (827.74663pt too wide) in paragraph at lines 232--239
+\tensy ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ \tenrm : \tensy j \tenrm : \tensy ^^@ ^^@ ^^
+@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ ^^@ \tenrm : \ten
+sy jj\teni ENSE\tenrm 00003461148\teni :\tenrm 1\tensy j\teni ENSE\tenrm 000021
+67182\teni :\tenrm 1\tensy j\tenrm 2\teni :\tenrm 5\tensy jj\teni ENSE\tenrm 00
+003461148\teni :\tenrm 1\tensy j\teni ENSE\tenrm 00002167182\teni :\tenrm 1\ten
+sy j\tenrm 1\teni :\tenrm 8\tensy jj\teni ENSE\tenrm 00003461148\teni :\tenrm 1
+\tensy j\teni ENSE\tenrm 00002167182\teni :\tenrm 1\tensy j\tenrm 2\teni :\tenr
+m 2\tensy jj\teni ENSE\tenrm 00003461148\teni :\tenrm 1\tensy j\teni ENSE\tenrm
+ 00002167182\teni :\tenrm 1\tensy j\tenrm 1\teni :\tenrm 6\tensy jj\teni ENSE\t
+enrm 00003541068\teni :\tenrm 1\tensy j\teni ENSE\tenrm 00001888888\teni :\tenr
+m 1\tensy j\tenrm 0\teni :\tenrm 1\tensy j$ |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tensy ^^@
+.\glue(\medmuskip) 2.22217 plus 1.11108 minus 2.22217
+.\tensy ^^@
+.\penalty 700
+.\glue(\medmuskip) 2.22217 plus 1.11108 minus 2.22217
+.etc.
+
+[2]
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.242 branchpoint_
+                  predictions_snp <- predictBranchpoints(query_attributes_snp)
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.243 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.244 snp_
+          stats <- predictionsToStats(branchpoint_predictions_snp, query_snp)
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.245 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.246 pander::pander(snp_
+                         stats, row.names=FALSE, split.table=130, style="rma...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.248 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Misplaced alignment tab character &.
+l.251 | &
+         nbsp;  |       id       |  chromosome  |  chrom_start  |  strand  |...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.251 ...|       id       |  chromosome  |  chrom_
+                                                  start  |  strand  |  ref_a...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.256 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Misplaced alignment tab character &.
+l.261 | &
+         nbsp;  |  BP_num_ALT  |  deleted_n  |  created_n  |  dist_to_exon  ...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.261 | &nbsp;  |  BP_
+                      num_ALT  |  deleted_n  |  created_n  |  dist_to_exon  ...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.266 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Misplaced alignment tab character &.
+l.271 | &
+         nbsp;  |  max_prob_REF  |  max_prob_ALT  |  max_U2_REF  |  max_U2_A...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.271 | &nbsp;  |  max_
+                       prob_REF  |  max_prob_ALT  |  max_U2_REF  |  max_U2_A...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.276 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.280 #
+       ### Branchpoint predictions in an intronic window
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.280 ##
+        ## Branchpoint predictions in an intronic window
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.280 ###
+         # Branchpoint predictions in an intronic window
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.280 ####
+           Branchpoint predictions in an intronic window
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.285 plotBranchpointWindow(query_
+                                  intron$id[2], branchpoint_predictions_intr...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.285 ...ntWindow(query_intron$id[2], branchpoint_
+                                                  predictions_intron,query_a...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.289 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (76.86382pt too wide) in paragraph at lines 284--289
+[]\tenrm ```r plotBranchpointWindow(query$[]\teni ntron$\tenrm id[2], branchpoi
+nt$[]\teni redictions[]ntron; query[]ttributes[]ntron; probability[]utoff \tenr
+m =|
+
+\hbox(7.5+2.86108)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm \ (ligature ``)
+.\tenrm `
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.292 #
+       ### Branchpoint predictions in reference and alternative sequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.292 ##
+        ## Branchpoint predictions in reference and alternative sequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.292 ###
+         # Branchpoint predictions in reference and alternative sequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.292 ####
+           Branchpoint predictions in reference and alternative sequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.297 plotBranchpointWindow(query_
+                                  snp$id[2], branchpoint_predictions_snp,que...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.297 ...pointWindow(query_snp$id[2], branchpoint_
+                                                  predictions_snp,query_attr...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.301 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (37.0425pt too wide) in paragraph at lines 296--301
+[]\tenrm ```r plotBranchpointWindow(query$[]\teni np$\tenrm id[2], branchpoint$
+[]\teni redictions[]np; query[]ttributes[]np; probability[]utoff \tenrm =|
+
+\hbox(7.5+2.86108)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm \ (ligature ``)
+.\tenrm `
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.304 #
+       # Output table column descriptions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.304 ##
+         Output table column descriptions
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.308 #
+       ## getQueryLoc
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.308 ##
+        # getQueryLoc
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.308 ###
+          getQueryLoc
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.314 |chrom_
+             start | chromosome location of the start of the window (for reg...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.322 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (2185.70375pt too wide) in paragraph at lines 310--322
+\tenrm | iden-ti-fier for query | |chro-mo-some | chro-mo-some name (i.e. chr1)
+ | |chrom$[]\teni tart\tensy j\teni chromosomelocationofthestartofthewindow\ten
+rm (\teni forregion\tenrm )\teni ; orlocationoftheSNP\tenrm (\teni forSNP\tenrm
+ )\tensy jj\teni chrom[]nd\tensy j\teni chromosomelocationoftheendofthewindow\t
+enrm (\teni forregion\tenrm )\teni :NotincludedforSNPqueries:\tensy jj\teni str
+and\tensy j\teni chromosomestrand\tensy jj\teni to[]prime\tensy j\teni distance
+\tenrm (\teni innucleotides\tenrm )\teni totheclosestannotated\tenrm 3[]\teni e
+xon\tensy jj\teni to[]prime\tensy j\teni distance\tenrm (\teni innucleotides\te
+nrm )\teni totheclosestannotated\tenrm 5[]\teni exon\tensy jj\teni same[]ene\te
+nsy j\tenrm (\teni boolean\tenrm )\teni aretheclosest\tenrm 3[]\teni and\tenrm 
+5[]\teni exonsfromthesameparentgene\tenrm ?\tensy jj\teni exon[]prime\tensy j\t
+eni exon[]doftheclosestannotated\tenrm 3[]\teni exon\tensy jj\teni exon[]prime\
+tensy j\teni exon[]doftheclosestannotated\tenrm 5[]\teni exon\tensy j$ |
+
+\hbox(7.51782+2.86108)x469.75499, glue set - 1.0
+.\tenrm |
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm i
+.\tenrm d
+.\tenrm e
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.323 #
+       ## getBranchpointSequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.323 ##
+        # getBranchpointSequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.323 ###
+          getBranchpointSequence
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.327 ...dentifier for site-specific query (id+to_
+                                                  3prime+REF/ALT) |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.354 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (3586.73875pt too wide) in paragraph at lines 325--354
+\tenrm | iden-ti-fier for site-specific query (id+to$[]\teni prime \tenrm + \te
+ni REF=ALT\tenrm )\tensy jj\teni chromosome\tensy j\teni chromosomename\tenrm (
+\teni i:e:chr\tenrm 1)\tensy jj\teni end\tensy j\teni chromosomelocationofthesi
+tespecificquery\tensy jj\teni strand\tensy j\teni chromosomestrand\tensy jj\ten
+i seq\tensy j\teni RNAsequencecoveringthe\tenrm 501\teni nucletidessurroundingt
+hesite\tensy jj\teni exon[]prime\tensy j\teni exon[]doftheclosestannotated\tenr
+m 3[]\teni exon\tensy jj\teni exon[]prime\tensy j\teni exon[]doftheclosestannot
+ated\tenrm 5[]\teni exon\tensy jj\teni to[]prime\tensy j\teni distance\tenrm (\
+teni innucleotides\tenrm )\teni totheclosestannotated\tenrm 3[]\teni exon\tensy
+ jj\teni to[]prime\tensy j\teni distance\tenrm (\teni innucleotides\tenrm )\ten
+i totheclosestannotated\tenrm 5[]\teni exon\tensy jj\teni ppt[]tart\tensy j\ten
+i distance\tenrm (\teni innucleotides\tenrm )\teni tothepolypyrimidinetract\ten
+sy jj\teni ppt[]un[]ength\tensy j\teni lengthofthepolypyrimidinetract\tensy jj\
+teni canon[]it\tenrm 1\tensy j\teni distance\tenrm (\teni innucleotides\tenrm )
+\teni tothe\tenrm 1\teni stAGdinucleotide\tensy jj\teni canon[]it\tenrm 2\tensy
+ j\teni distance\tenrm (\teni innucleotides\tenrm )\teni tothe\tenrm 2\teni ndA
+Gdinucleotide\tensy jj\teni canon[]it\tenrm 3\tensy j\teni distance\tenrm (\ten
+i innucleotides\tenrm )\teni tothe\tenrm 3\teni rdAGdinucleotide\tensy jj\teni 
+canon[]it\tenrm 4\tensy j\teni distance\tenrm (\teni innucleotides\tenrm )\teni
+ tothe\tenrm 4\teni thAGdinucleotide\tensy jj\teni canon[]it\tenrm 5\tensy j\te
+ni distance\tenrm (\teni innucleotides\tenrm )\teni tothe\tenrm 5\teni thAGdinu
+cleotide\tensy jj\teni seq[]eg\tenrm 5\tensy j\teni sequenceidentityofthenuclet
+ide \tensy ^^@|
+
+\hbox(7.51782+2.5)x469.75499, glue set - 1.0
+.\tenrm |
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm i
+.\tenrm d
+.\tenrm e
+.etc.
+
+
+Overfull \hbox (103.1132pt too wide) in paragraph at lines 325--354
+\tenrm 5\teni ntfromthetestedsite\tensy jj\teni seq[]eg\tenrm 4\tensy j\teni se
+quenceidentityofthenucletide \tensy ^^@ \tenrm 4\teni ntfromthetestedsite\tensy
+ jj\teni seq[]eg\tenrm 3\tensy j\teni sequenceidentityofthenucletide \tensy ^^@
+|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 5
+.\teni n
+.\teni t
+.\teni f
+.\kern1.0764
+.etc.
+
+
+Overfull \hbox (103.1132pt too wide) in paragraph at lines 325--354
+\tenrm 3\teni ntfromthetestedsite\tensy jj\teni seq[]eg\tenrm 2\tensy j\teni se
+quenceidentityofthenucletide \tensy ^^@ \tenrm 2\teni ntfromthetestedsite\tensy
+ jj\teni seq[]eg\tenrm 1\tensy j\teni sequenceidentityofthenucletide \tensy ^^@
+|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 3
+.\teni n
+.\teni t
+.\teni f
+.\kern1.0764
+.etc.
+
+
+Overfull \hbox (100.97124pt too wide) in paragraph at lines 325--354
+\tenrm 1\teni ntfromthetestedsite\tensy jj\teni seq[]os\tenrm 2\tensy j\teni se
+quenceidentityofthenucletide \tenrm + 2\teni ntfromthetestedsite\tensy jj\teni 
+seq[]os\tenrm 3\tensy j\teni sequenceidentityofthenucletide \tenrm +|
+
+\hbox(7.5+2.86108)x469.75499, glue set - 1.0
+.\tenrm 1
+.\teni n
+.\teni t
+.\teni f
+.\kern1.0764
+.etc.
+
+
+Overfull \hbox (100.97124pt too wide) in paragraph at lines 325--354
+\tenrm 3\teni ntfromthetestedsite\tensy jj\teni seq[]os\tenrm 4\tensy j\teni se
+quenceidentityofthenucletide \tenrm + 4\teni ntfromthetestedsite\tensy jj\teni 
+seq[]os\tenrm 5\tensy j\teni sequenceidentityofthenucletide \tenrm +|
+
+\hbox(7.5+2.86108)x469.75499, glue set - 1.0
+.\tenrm 3
+.\teni n
+.\teni t
+.\teni f
+.\kern1.0764
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.355 #
+       ## predictBranchpoints
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.355 ##
+        # predictBranchpoints
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.355 ###
+          predictBranchpoints
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.360 |branchpoint_
+                   prob | branchpoint probability score |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.370 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (1942.99094pt too wide) in paragraph at lines 357--370
+\tenrm | iden-ti-fier for query | |branchpoint$[]\teni rob\tensy j\teni branchp
+ointprobabilityscore\tensy jj\teni nucleotide\tensy j\teni nuceotideattestedsit
+e\tensy jj\teni distance\tensy j\teni distance\tenrm (\teni innucleotides\tenrm
+ )\teni totheclosestannotated\tenrm 3[]\teni exon\tensy jj\teni allele[]tatus\t
+ensy j\teni REF\tenrm (\teni referencesequence\tenrm )\teni orALT\tenrm (\teni 
+alternativesequence\tenrm )\tensy jj\teni chromosome\tensy j\teni chromosomenam
+e\tenrm (\teni i:e:chr\tenrm 1)\tensy jj\teni strand\tensy j\teni chromosomestr
+and\tensy jj\teni end\tensy j\teni chromosomelocationofthesitespecificquery\ten
+sy jj\teni exon[]prime\tensy j\teni exon[]doftheclosestannotated\tenrm 3[]\teni
+ exon\tensy jj\teni exon[]prime\tensy j\teni exon[]doftheclosestannotated\tenrm
+ 5[]\teni exon\tensy jj\teni U\tenrm 2[]\teni inding[]nergy\tensy j\teni bindin
+genergyofthesequencesurroundingthetestingsitetotheU\tenrm 2\teni snRNA\tensy j$
+ |
+
+\hbox(7.51782+2.86108)x469.75499, glue set - 1.0
+.\tenrm |
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm i
+.\tenrm d
+.\tenrm e
+.etc.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.371 #
+       ## predictionsToStats
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.371 ##
+        # predictionsToStats
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! You can't use `macro parameter character #' in vertical mode.
+l.371 ###
+          predictionsToStats
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.377 |chrom_
+             start | chromosome location of the SNP |
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+)
+! Emergency stop.
+<*> ...maltilde  \input ./vignettes/my-vignette.md
+                                                  
+*** (job aborted, no legal \end found)
+
+!  ==> Fatal error occurred, no output PDF file produced!
