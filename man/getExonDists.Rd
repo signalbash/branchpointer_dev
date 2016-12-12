@@ -12,7 +12,7 @@ must have chromosome at position 2, genomic co-ordinate at position 3,
 and starnd at position 4.}
 
 \item{exon_annotation}{data.frame containing exon co-ordinates.
-Should be produced by format_exon_annotations.sh}
+Should be produced by gtfToExons()}
 
 \item{query_type}{type of query. "SNP" or "region"}
 }

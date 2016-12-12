@@ -6,8 +6,8 @@
 Gets intronic sequence covering the branchpoint window and extracts predictive features}
 \usage{
 getBranchpointSequence(query, unique_id = "test", query_type,
-  working_directory = ".", genome, rm_chr = FALSE, bedtools_location,
-  use_parallel = FALSE, cores = 1)
+  working_directory = ".", genome = NA, rm_chr = FALSE, bedtools_location,
+  use_parallel = FALSE, cores = 1, useBSgenome = FALSE, BSgenome = NULL)
 }
 \arguments{
 \item{query}{branchpointer query data.frame
@@ -30,6 +30,11 @@ Required if genome sequence names do not contain "chr"}
 \item{use_parallel}{use parallelisation to speed up code?}
 
 \item{cores}{number of cores to use in parallelisation (default = \code{1})}
+
+\item{useBSgenome}{Use a BSgenome object for sequence retrieval?  (default = \code{1})
+Overridden if a genome .fa and a bedtools_location are sepcified.}
+
+\item{BSgenome}{BSgenome object}
 }
 \value{
 data.frame with all features required to predict branchpoint probability scores
@@ -40,8 +45,15 @@ Gets intronic sequence covering the branchpoint window and extracts predictive f
 }
 \examples{
 query_attributes <- getBranchpointSequence(query,
+query_type = "SNP"
 genome = "GRCh38.p5.genome.fa",
-bedtools_location="/Applications/apps/bedtools2/bin/bedtools")
+bedtools_location = "/Applications/apps/bedtools2/bin/bedtools")
+
+genome <- BSgenome.Hsapiens.UCSC.hg38
+query_attributes <- getBranchpointSequence(query,
+query_type = "region"
+useBSgenome = TRUE,
+BSgenome = genome)
 }
 \author{
 Beth Signal

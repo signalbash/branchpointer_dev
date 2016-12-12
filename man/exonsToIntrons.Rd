@@ -8,7 +8,7 @@ exonsToIntrons(exons, max_dist = 50)
 }
 \arguments{
 \item{exons}{data.frame containing exon co-ordinates.
-Should be produced by format_exon_annotations.sh}
+Should be produced by gtfToExons()}
 
 \item{max_dist}{Maximum distance from the 3' exon to create the branchpoint region.}
 }

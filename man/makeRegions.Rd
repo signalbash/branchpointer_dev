@@ -13,7 +13,7 @@ makeRegions(id, id_type, exons)
 \code{"transcript_id"}, or \code{"exon_id"})}
 
 \item{exons}{data.frame containing exon co-ordinates.
-Should be produced by format_exon_annotations.sh}
+Should be produced by gtfToExons()}
 }
 \value{
 data.frame with frormatted query

@@ -19,7 +19,7 @@ and strand at position 4.}
 \item{filter}{remove SNP queries prior to finding finding nearest exons.}
 
 \item{exons}{data.frame containing exon co-ordinates.
-Should be produced by format_exon_annotations.sh}
+Should be produced by gtfToExons()}
 
 \item{use_parallel}{use parallelisation to speed up code?
 (reccomended for > 500 query entries)}

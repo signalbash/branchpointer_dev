@@ -22,7 +22,7 @@ plotBranchpointWindow(query_name, branchpoint_predictions, query_attributes,
 \item{plot_structure}{plot structures for gene and 3' exon containing and skipping isoforms}
 
 \item{exons}{data.frame containing exon co-ordinates.
-Should be produced by format_exon_annotations.sh}
+Should be produced by gtfToExons()}
 }
 \value{
 ggplot2 plot with branchpoint features in the specified intronic region
