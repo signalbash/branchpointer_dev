@@ -18,7 +18,7 @@ vector with attribute value, or NA if attribute name is not found.
 extract a field from the GTF annotation (usually column 9)
 }
 \examples{
-gtf <- as.data.frame(data.table::fread("~/Downloads/gencode.v24.annotation.gtf"))
+gtf <- as.data.frame(data.table::fread(system.file("extdata","gencode.v24.annotation.small.gtf", package = "branchpointer")))
 gtf$gene_id <- getGtfAttribute(gtf, "gene_id")
 }
 \author{
