@@ -1,4 +1,2 @@
-vignettes/GRCh38.p5.genome.fa
-vignettes/GRCh38.p5.genome.fa.fai
-vignettes/gencode.v24.annotation.exons.txt
-vignettes/gencode.v24.annotation.gtf
+branchpointer/vignettes/*.html
+branchpointer/vignettes/*.pdf
