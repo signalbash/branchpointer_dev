@@ -1,10 +1,10 @@
 citEntry(entry="article",
-         title = "Machine-learning annotation of human splicing branchpoints",'
+         title = "Machine-learning annotation of human splicing branchpoints",
          author = personList(
              as.person("Bethany Signal"),
              as.person("Brain Gloss"),
-			 as.person("Marcel Dinger"),
-			 as.person("Timothy Mercer")),
+             as.person("Marcel Dinger"),
+             as.person("Timothy Mercer")),
          journal = "bioRxiv",
          year = "2016",
          doi = "10.1101/094003",
@@ -12,4 +12,5 @@ citEntry(entry="article",
          url = "http://biorxiv.org/content/early/2016/12/14/094003",
          textVersion = paste("Bethany Signal, Brian Gloss, Marcel Dinger and Timothy Mercer.",
                              "Machine-learning annotation of human splicing branchpoints.",
-                             "bioRxiv (2016). http://dx.doi.org/10.1101/094003.")
+                             "bioRxiv (2016).",
+                             "http://dx.doi.org/10.1101/094003"))
