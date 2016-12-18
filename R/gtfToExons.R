@@ -6,52 +6,66 @@
 #' If not specified, will write to the same location as the gtf file.
 #' @return exon annotation data.frame
 #' @export
-#' @import data.table
 #' @import stringr
+#' @import rtracklayer
 #' @importFrom utils write.table
+#' @importFrom GenomicRanges seqnames
+#' @importFrom GenomicRanges ranges
+#' @importFrom GenomicRanges strand
 #' @examples
-#' exons <- gtfToExons("~/Downloads/gencode.v24.annotation.small.gtf", output_file="gencode.v24.exons.txt")
+#' small_gtf <- system.file("extdata","gencode.v24.annotation.small.gtf",
+#' package = "branchpointer")
+#' exons <- gtfToExons(small_gtf)
 #' @author Beth Signal
 
 gtfToExons <- function(gtf, output_file=NA){
 
-  gtf <- as.data.frame(data.table::fread(gtf))
+  gtf_rtrack <- rtracklayer::import(gtf)
 
   #keep exon annotations only
-  gtf <- gtf[gtf$V3 == "exon",]
+  gtf_rtrack <- gtf_rtrack[gtf_rtrack@elementMetadata$type=="exon"]
 
-  if(grepl("biotype", gtf$V9[1])){
-    type_name <- "biotype"
-  }else{
-    type_name <- "type"
+  #change "biotype" to "type" in GTFs from Ensembl
+  if(any(grepl("biotype", names(gtf_rtrack@elementMetadata)))){
+    names(gtf_rtrack@elementMetadata) <- gsub("biotype",
+                                              "type",
+                                              names(gtf_rtrack@elementMetadata))
   }
 
-  gtf$gene_id <- getGtfAttribute(gtf, "gene_id")
-  gtf$gene_biotype <- getGtfAttribute(gtf, paste0("gene_", type_name))
-  gtf$transcript_id <- getGtfAttribute(gtf, "transcript_id")
-  gtf$transcript_biotype <- getGtfAttribute(gtf, paste0("transcript_", type_name))
-
-  if(any(grepl("exon", gtf$V9))){
-    gtf$exon_number <- getGtfAttribute(gtf, "exon_number")
-    gtf$exon_id <- getGtfAttribute(gtf, "exon_id")
-  }else{
-    gtf$exon_number <- NA
-    gtf$exon_id <- gtf$transcript_id
+  if(all(!grepl("exon", names(gtf_rtrack@elementMetadata)))){
+    gtf_rtrack@elementMetadata$exon_number <- NA
+    gtf_rtrack@elementMetadata$exon_id <- gtf_rtrack@elementMetadata$transcript_id
 
     #make exon names
     n <- 1
-    while(any(is.na(gtf$exon_number))){
-      transcript_ids <- unique(gtf$transcript_id)
-      m <- match(transcript_ids, gtf$transcript_id[which(is.na(gtf$exon_number))])
-      gtf$exon_number[which(is.na(gtf$exon_number))[m]] <- n
+    while(any(is.na(gtf_rtrack@elementMetadata$exon_number))){
+      transcript_ids <- unique(gtf_rtrack@elementMetadata$transcript_id)
+      m <- match(transcript_ids,
+                 gtf_rtrack@elementMetadata$transcript_id[which(
+                   is.na(gtf_rtrack@elementMetadata$exon_number))])
+      gtf_rtrack@elementMetadata$exon_number[which(
+        is.na(gtf_rtrack@elementMetadata$exon_number))[m]] <- n
       n <- n+1
     }
   }
 
+  exons <- cbind(as.character(GenomicRanges::seqnames(gtf_rtrack)),
+                 gtf_rtrack@elementMetadata[,c(2)],
+                 as.data.frame(GenomicRanges::ranges(gtf_rtrack))[,-3],
+                 as.character(GenomicRanges::strand(gtf_rtrack)),
+                 gtf_rtrack@elementMetadata[,c("gene_id","gene_type",
+                                               "transcript_id","transcript_type",
+                                               "exon_number","exon_id")])
+
+  colnames(exons) <- c("chromosome","type","start","end",
+                       "strand","gene_id","gene_type",
+                       "transcript_id","transcript_type",
+                       "exon_number","exon_id")
+
   if(!is.na(output_file)){
-  utils::write.table(gtf[,c(1,3,4,5,7,10:15)], file=output_file,
-              quote=FALSE, col.names =FALSE, row.names = FALSE, sep ="\t")
+    utils::write.table(exons, file=output_file,
+                       quote=FALSE, col.names =FALSE, row.names = FALSE, sep ="\t")
   }
 
-  return(gtf[,c(1,3,4,5,7,10:15)])
+  return(exons)
 }
