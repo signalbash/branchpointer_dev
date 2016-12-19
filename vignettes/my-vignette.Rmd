@@ -3,10 +3,10 @@ title: 'Branchpointer: prediction of human splicing branchpoint sites'
 author: "Beth Signal"
 date: '`r Sys.Date()`'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 vignette: |
-  %\VignetteIndexEntry{Branchpointer} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Branchpointer} %\VignetteEngine{knitr::knitr} %\VignetteEncoding{UTF-8}
 ---
 ## Branchpointer: prediction of human splicing branchpoint sites
 
