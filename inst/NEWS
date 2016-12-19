@@ -5,3 +5,6 @@ Pre-BioC submission
 Version 0.99.1
 
 Changed GTF reading to use rtracklayer::import
+
+Version 0.99.1
+Changed VignetteEngine so vignette can be built
