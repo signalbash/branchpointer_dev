@@ -6,5 +6,8 @@ Version 0.99.1
 
 Changed GTF reading to use rtracklayer::import
 
-Version 0.99.1
+Version 0.99.2
 Changed VignetteEngine so vignette can be built
+
+Version 0.99.3
+Removed pdf
