@@ -11,3 +11,7 @@ Changed VignetteEngine so vignette can be built
 
 Version 0.99.3
 Removed pdf
+
+Version 0.99.2
+Changed Vignette to .Rnw to generate BiocStyle output
+
