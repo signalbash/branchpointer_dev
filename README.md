@@ -34,7 +34,7 @@ Alternatively, an R BSgenome object can now be used (see vignette).
 
 **Title**: Prediction of intronic splicing branchpoints
 
-**Version**: 0.99.5
+**Version**: 0.99.6
 
 **Date**: 2017-01-02
 

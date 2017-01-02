@@ -17,3 +17,6 @@ Changed Vignette to .Rnw to generate BiocStyle output
 
 Version 0.99.5
 UTF8 encoding in vignette to pass build
+
+Version 0.99.6
+depends R>3.4
