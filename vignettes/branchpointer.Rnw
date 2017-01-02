@@ -5,6 +5,7 @@
 %\VignettePackage{branchpointer}
 
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 
 <<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
