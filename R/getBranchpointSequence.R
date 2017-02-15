@@ -3,14 +3,14 @@
 #' @param query branchpointer query data.frame
 #' must have chromosome at position 2, genomic co-ordinate at position 3,
 #' and strand at position 4.
-#' @param rm_chr remove "chr" before chromosome names before writing bed file.
+#' @param rmChr remove "chr" before chromosome names before writing bed file.
 #' Required if genome sequence names do not contain "chr"
-#' @param query_type type of branchpointer query. "SNP" or "region".
+#' @param queryType type of branchpointer query. "SNP" or "region".
 #' @param genome .fa genome file location
-#' @param bedtools_location bedtools binary location (which bedtools)
-#' @param unique_id unique string identifier for intermediate .bed and .fa files.
-#' @param working_directory directory where intermediate .bed and .fa are located
-#' @param use_parallel use parallelisation to speed up code?
+#' @param bedtoolsLocation bedtools binary location (which bedtools)
+#' @param uniqueId unique string identifier for intermediate .bed and .fa files.
+#' @param workingDirectory directory where intermediate .bed and .fa are located
+#' @param useParallel use parallelisation to speed up code?
 #' @param cores number of cores to use in parallelisation (default = \code{1})
 #' @param useBSgenome Use a BSgenome object for sequence retrieval?  (default = \code{1})
 #' Overridden if a genome .fa and a bedtools_location are sepcified.
@@ -29,36 +29,36 @@
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
 #' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,query_type = "SNP")
-#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+#' query <- readQueryFile(query_snp,queryType = "SNP")
+#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 #' query_attributes <- getBranchpointSequence(query,
-#' query_type = "SNP",
+#' queryType = "SNP",
 #' useBSgenome = TRUE,
 #' BSgenome = genome)
 #'
 #' query <- makeRegions("ENSE00003541068.1", "exon_id", exons)
 #' query_attributes <- getBranchpointSequence(query,
-#' query_type = "region",
+#' queryType = "region",
 #' useBSgenome = TRUE,
 #' BSgenome = genome)
 
 #' @author Beth Signal
 
-getBranchpointSequence <- function(query, unique_id = "test",
-                                   query_type,
-                                   working_directory = ".",
+getBranchpointSequence <- function(query, uniqueId = "test",
+                                   queryType,
+                                   workingDirectory = ".",
                                    genome = NA,
-                                   rm_chr = FALSE,
-                                   bedtools_location,
-                                   use_parallel = FALSE,
+                                   rmChr = FALSE,
+                                   bedtoolsLocation,
+                                   useParallel = FALSE,
                                    cores = 1,
                                    useBSgenome = FALSE,
                                    BSgenome = NULL) {
 
 
-  if(missing(query_type) | !(query_type %in% c("SNP", "region"))){
+  if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
 
-    stop("please specify query_type as \"region\" or \"SNP\"")
+    stop("please specify queryType as \"region\" or \"SNP\"")
 
   }
 
@@ -74,19 +74,19 @@ getBranchpointSequence <- function(query, unique_id = "test",
 
   }
 
-  if(is.na(genome) & useBSgenome == FALSE & !missing(bedtools_location)){
+  if(is.na(genome) & useBSgenome == FALSE & !missing(bedtoolsLocation)){
 
     stop("please specify a genome .fa file for sequence extraction")
 
   }
 
-  if(missing(bedtools_location) & !is.na(genome) & (useBSgenome == FALSE | (useBSgenome == TRUE & is.null(BSgenome)))){
+  if(missing(bedtoolsLocation) & !is.na(genome) & (useBSgenome == FALSE | (useBSgenome == TRUE & is.null(BSgenome)))){
 
     stop("please specify the bedtools binary location")
 
   }
 
-  if(!is.na(genome) & !missing(bedtools_location) & useBSgenome == TRUE & !is.null(BSgenome)){
+  if(!is.na(genome) & !missing(bedtoolsLocation) & useBSgenome == TRUE & !is.null(BSgenome)){
 
     stop("Both a .fa genome and BSgenome have been specified.\n
          Using the .fa genome...\n
@@ -94,25 +94,25 @@ getBranchpointSequence <- function(query, unique_id = "test",
 
   }
 
-  if(use_parallel){
+  if(useParallel){
 
-    max_cores <- parallel::detectCores()
+    maxCores <- parallel::detectCores()
 
-    if(max_cores < cores){
+    if(maxCores < cores){
 
-      message(paste0("specified cores (", cores,") is greater than available cores(", max_cores,")"))
+      message(paste0("specified cores (", cores,") is greater than available cores(", maxCores,")"))
       message(paste0("using all available cores"))
-      cores <- max_cores
+      cores <- maxCores
 
     }
 
   }
 
   #make bed format file
-  if (query_type == "SNP") {
+  if (queryType == "SNP") {
     bed <- query[,c(2,3,3,1,4)]
 
-  }else if (query_type == "region") {
+  }else if (queryType == "region") {
     bed <- query[,c(2,4,4,1,5)]
     bed[bed[,5] == "-",] <- query[bed[,5] == "-",c(2,3,3,1,5)]
   }
@@ -145,27 +145,27 @@ getBranchpointSequence <- function(query, unique_id = "test",
   }
 
   if(useBSgenome){
-    bed_seq <- Biostrings::getSeq(BSgenome, bed$chromosome, start=bed$start+1,
+    bed.seq <- Biostrings::getSeq(BSgenome, bed$chromosome, start=bed$start+1,
                    end=bed$end, strand=bed$strand)
-    s <- as.character(bed_seq)
+    s <- as.character(bed.seq)
     ids <- rownames(bed)
   }else{
   #convert to .fasta using bedtools
     utils::write.table(
-      bed, sep = "\t", file = paste0(working_directory,"/mutation_",unique_id,".bed"),
+      bed, sep = "\t", file = paste0(workingDirectory,"/mutation_",uniqueId,".bed"),
       row.names = FALSE,col.names = FALSE,quote = FALSE
     )
     cmd <- paste0(
-      bedtools_location," getfasta -fi ", genome,
-      " -bed ",working_directory,"/mutation_",unique_id,".bed -fo ",
-      working_directory,"/mutation_",unique_id,".fa -name -s"
+      bedtoolsLocation," getfasta -fi ", genome,
+      " -bed ",workingDirectory,"/mutation_",uniqueId,".bed -fo ",
+      workingDirectory,"/mutation_",uniqueId,".fa -name -s"
     )
     system(cmd)
     fasta <-
-      data.table::fread(paste0(working_directory,"/mutation_",unique_id,".fa"),
+      data.table::fread(paste0(workingDirectory,"/mutation_",uniqueId,".fa"),
                         header = FALSE, stringsAsFactors = FALSE)
     fasta <- as.data.frame(fasta)
-    system(paste0("rm -f ",working_directory,"/mutation_",unique_id,"*"))
+    system(paste0("rm -f ",workingDirectory,"/mutation_",uniqueId,"*"))
 
     s <- fasta[seq(2,dim(fasta)[1],by = 2),1]
     ids <- gsub(">","",fasta[seq(1,dim(fasta)[1],by = 2),1])
@@ -174,27 +174,27 @@ getBranchpointSequence <- function(query, unique_id = "test",
   }
 
   ##mutate at SNP location
-  if (query_type == "SNP") {
+  if (queryType == "SNP") {
     #location of SNP
     loc <- 44 - query$to_3prime
 
-    ref_nt <- as.character(query$ref_allele)
-    alt_nt <- as.character(query$alt_allele)
+    ref.nt <- as.character(query$ref_allele)
+    alt.nt <- as.character(query$alt_allele)
 
     #change to compliment if on negative strand
-    ref_nt[query$strand == "-"] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(ref_nt[query$strand == "-"])))
-    alt_nt[query$strand == "-"] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(alt_nt[query$strand == "-"])))
+    ref.nt[query$strand == "-"] <-
+      as.character(Biostrings::complement(Biostrings::DNAStringSet(ref.nt[query$strand == "-"])))
+    alt.nt[query$strand == "-"] <-
+      as.character(Biostrings::complement(Biostrings::DNAStringSet(alt.nt[query$strand == "-"])))
 
     #check ref allele
-    ref_allele_correct <- substr(s, 251 + (loc),251 + (loc)) == ref_nt
+    refAlleleCorrect <- substr(s, 251 + (loc),251 + (loc)) == ref_nt
 
-    if (any(!ref_allele_correct)) {
-      rm <- which(ref_allele_correct == FALSE)
+    if (any(!refAlleleCorrect)) {
+      rm <- which(refAlleleCorrect == FALSE)
 
-      if (all(ref_allele_correct[query$strand == "-"] == FALSE) &
-          all(ref_allele_correct[query$strand == "+"])) {
+      if (all(refAlleleCorrect[query$strand == "-"] == FALSE) &
+          all(refAlleleCorrect[query$strand == "+"])) {
         message("reference alleles are incorrect for all negative strand introns")
         message("please input alleles as positive strand sequences")
       }else{
@@ -211,12 +211,12 @@ getBranchpointSequence <- function(query, unique_id = "test",
     }
 
     #create mutated sequence
-    s_mut <-
-      paste0(substr(s, 1,250 + (loc)), alt_nt, substr(s, 252 + (loc),nchar(s)))
+    s.mut <-
+      paste0(substr(s, 1,250 + (loc)), alt.nt, substr(s, 252 + (loc),nchar(s)))
 
-    seqs_mut <- vector()
+    seqs.mut <- vector()
     for (i in 18:44) {
-      seqs_mut <- append(seqs_mut, substr(s_mut, (i - 17),(i - 17) + 500))
+      seqs.mut <- append(seqs.mut, substr(s.mut, (i - 17),(i - 17) + 500))
     }
 
 
@@ -229,13 +229,13 @@ getBranchpointSequence <- function(query, unique_id = "test",
     seqs <- append(seqs, substr(s, (i - 17),(i - 17) + 500))
   }
 
-  if (query_type == "SNP") {
+  if (queryType == "SNP") {
     df <-
       data.frame(id = c(
         paste0(bed$id,"_",rep(44:18,each = length(s)), "_REF"),
         paste0(bed$id,"_",rep(44:18,each = length(s)), "_ALT")
       ),
-      seq = c(seqs, seqs_mut) , stringsAsFactors = FALSE)
+      seq = c(seqs, seqs.mut) , stringsAsFactors = FALSE)
     reps <- 2
 
   }else{
@@ -250,7 +250,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
   df$to_5prime_vec <-
     rep(query$to_3prime + query$to_5prime, reps) - df$to_3prime_vec
 
-  if(query_type == "region"){
+  if(queryType == "region"){
     df$end <- rep(rep(query$chrom_end, length(18:44)),reps)
   }else{
     df$end <- rep(rep(query$chrom_start, length(18:44)),reps)
@@ -271,7 +271,7 @@ getBranchpointSequence <- function(query, unique_id = "test",
   df$end[df$strand == "-"] <- df$end[df$strand == "-"]  -
     df$dist.2[df$strand == "-"] + df$to_3prime_vec[df$strand == "-"]
 
-  query_attributes <- data.frame(
+  queryAttributes <- data.frame(
     exon_id = df$id,
     dist.1 = df$to_5prime_vec,
     dist.2 = df$to_3prime_vec, stringsAsFactors = FALSE
@@ -279,69 +279,69 @@ getBranchpointSequence <- function(query, unique_id = "test",
 
 
   #get sequence identity at position -5 to +5 relative to testing point
-  seq_pos0 <-
+  seq.pos.0 <-
     factor(substr(df$seq,251,251), levels = c("A","C","G","T"))
-  seq_pos1 <-
+  seq.pos.1 <-
     factor(substr(df$seq,252,252), levels = c("A","C","G","T"))
-  seq_pos2 <-
+  seq.pos.2 <-
     factor(substr(df$seq,253,253), levels = c("A","C","G","T"))
-  seq_pos3 <-
+  seq.pos.3 <-
     factor(substr(df$seq,254,254), levels = c("A","C","G","T"))
-  seq_pos4 <-
+  seq.pos.4 <-
     factor(substr(df$seq,255,255), levels = c("A","C","G","T"))
-  seq_pos5 <-
+  seq.pos.5 <-
     factor(substr(df$seq,256,256), levels = c("A","C","G","T"))
-  seq_neg1 <-
+  seq.neg.1 <-
     factor(substr(df$seq,250,250), levels = c("A","C","G","T"))
-  seq_neg2 <-
+  seq.neg.2 <-
     factor(substr(df$seq,249,249), levels = c("A","C","G","T"))
-  seq_neg3 <-
+  seq.neg.3 <-
     factor(substr(df$seq,248,248), levels = c("A","C","G","T"))
-  seq_neg4 <-
+  seq.neg.4 <-
     factor(substr(df$seq,247,247), levels = c("A","C","G","T"))
-  seq_neg5 <-
+  seq.neg.5 <-
     factor(substr(df$seq,246,246), levels = c("A","C","G","T"))
 
   #find canonical AG splice dinucleotides
   f <- gregexpr("AG",substr(df$seq, 252,501),perl = TRUE)
 
-  if (use_parallel) {
+  if (useParallel) {
     cluster <- parallel::makeCluster(cores)
 
-    canon_hits <- parallel::parLapply(cluster,f, getCanonical3SS)
-    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = TRUE)
-    canon_df <- as.data.frame(canon_df, stringsAsFactors=FALSE)
-    colnames(canon_df) <-
+    canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
+    canon <- matrix(unlist(canonHits), ncol = 5, byrow = TRUE)
+    canon <- as.data.frame(canon, stringsAsFactors=FALSE)
+    colnames(canon) <-
       c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")
-    query_attributes <- cbind(query_attributes, seq = df$seq)
+    queryAttributes <- cbind(queryAttributes, seq = df$seq)
 
-    pyra_df <-
-      parallel::parApply(cluster,query_attributes, 1, getPPT)
+    pyra <-
+      parallel::parApply(cluster,queryAttributes, 1, getPPT)
 
     parallel::stopCluster(cluster)
   }else{
-    canon_hits <- lapply(f, getCanonical3SS)
-    canon_df <- matrix(unlist(canon_hits), ncol = 5, byrow = TRUE)
-    canon_df <- as.data.frame(canon_df, stringsAsFactors=FALSE)
-    colnames(canon_df) <-
+    canonHits <- lapply(f, getCanonical3SS)
+    canon <- matrix(unlist(canonHits), ncol = 5, byrow = TRUE)
+    canon <- as.data.frame(canon, stringsAsFactors=FALSE)
+    colnames(canon) <-
       c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")
-    query_attributes <- cbind(query_attributes, seq = df$seq)
+    queryAttributes <- cbind(queryAttributes, seq = df$seq)
 
-    pyra_df <- apply(query_attributes, 1, getPPT)
+    pyra <- apply(queryAttributes, 1, getPPT)
   }
 
-  pyra_df <- as.data.frame(t(pyra_df),stringsAsFactors=FALSE)
-  colnames(pyra_df) <- c("ppt_start","ppt_run_length")
-  query_attributes$seq <- NULL
+  pyra <- as.data.frame(t(pyra),stringsAsFactors=FALSE)
+  colnames(pyra) <- c("ppt_start","ppt_run_length")
+  queryAttributes$seq <- NULL
 
-  query_attributes <-
+  queryAttributes <-
     cbind(
-      query_attributes, pyra_df, canon_df, seq_neg5,seq_neg4,seq_neg3,seq_neg2,
-      seq_neg1,seq_pos0,seq_pos1,seq_pos2,seq_pos3,seq_pos4,seq_pos5,
+      queryAttributes, pyra, canon, seq.neg.5,seq.neg.4,seq.neg.3,seq.neg.2,
+      seq.neg.1,seq.pos.0,seq.pos.1,seq.pos.2,seq.pos.3,seq.pos.4,seq.pos.5,
       row.names = NULL, stringsAsFactors=FALSE
     )
 
-  df <- cbind(df[,c(1,8,5,7,2,9,10)], query_attributes[,c(-c(1))])
+  df <- cbind(df[,c(1,8,5,7,2,9,10)], queryAttributes[,c(-c(1))])
 
   colnames(df)[c(8,9)] <- c("to_5prime","to_3prime")
 

@@ -2,8 +2,8 @@
 #'
 #' Searches Biomart for refsnp ids, and pulls genomic location and sequence identity information
 #' Reformats alleles so each query has only one alternative allele
-#' @param rs_id Vector of refsnp ids
-#' @param mart_snp biomaRt mart object specifying the BioMart database and dataset to be used
+#' @param refSNP Vector of refsnp ids
+#' @param mart.snp biomaRt mart object specifying the BioMart database and dataset to be used
 #' @return formatted SNP query data.frame
 #' @export
 #' @import biomaRt
@@ -13,58 +13,58 @@
 #' query <- snpToQuery("rs17000647", mart)
 #' @author Beth Signal
 
-snpToQuery <- function(rs_id, mart_snp) {
-  snp_info <- biomaRt::getBM(attributes = c("refsnp_id",'refsnp_source', "chr_name",
+snpToQuery <- function(refSNP, mart.snp) {
+  snpInfo <- biomaRt::getBM(attributes = c("refsnp_id",'refsnp_source', "chr_name",
                                    "chrom_start", "allele"),
-                    filters = "snp_filter", values = rs_id, mart = mart_snp)
+                    filters = "snp_filter", values = refSNP, mart = mart.snp)
 
   #make sure each SNP has only 1 ref and 1 alternate allele
-  multi_alleles <- which(nchar(snp_info$allele) != 3)
+  multiAlleles <- which(nchar(snpInfo$allele) != 3)
 
-  if (length(multi_alleles) > 0) {
-    snp_info_remade <- snp_info[-multi_alleles,]
-    snp_info <- snp_info[multi_alleles,]
+  if (length(multiAlleles) > 0) {
+    snpInfo.remade <- snpInfo[-multiAlleles,]
+    snpInfo <- snpInfo[multiAlleles,]
 
-    for (i in seq_along(snp_info$refsnp_id)) {
-      nts <- unlist(stringr::str_split(snp_info$allele[i],"/"))
+    for (i in seq_along(snpInfo$refsnp_id)) {
+      nts <- unlist(stringr::str_split(snpInfo$allele[i],"/"))
       ref <- nts[1]
       alt <- nts[-1]
       alleles <- paste0(ref,"/",alt)
 
-      remade <- snp_info[c(rep(i, length(alleles))),]
+      remade <- snpInfo[c(rep(i, length(alleles))),]
       remade$allele <- alleles
-      snp_info_remade <- rbind(snp_info_remade, remade)
+      snpInfo.remade <- rbind(snpInfo.remade, remade)
     }
-    snp_info <- snp_info_remade
+    snpInfo <- snpInfo.remade
   }
 
-  snp_info_query = data.frame(
-    id = snp_info$refsnp_id, chromosome = paste0("chr",snp_info$chr_name),
-    chrom_start = snp_info$chrom_start, strand = 2,
-    ref_allele = str_sub(snp_info$allele,1,1),
-    alt_allele = str_sub(snp_info$allele,3,3)
+  snpInfoQuery = data.frame(
+    id = snp_info$refsnp_id, chromosome = paste0("chr",snpInfo$chr_name),
+    chrom_start = snpInfo$chrom_start, strand = 2,
+    ref_allele = str_sub(snpInfo$allele,1,1),
+    alt_allele = str_sub(snpInfo$allele,3,3)
   )
 
 
   #check for unstranded queries & replace with positive & negative
-  unstranded <- which(snp_info_query$strand != "+" | snp_info_query$strand !="-")
+  unstranded <- which(snpInfoQuery$strand != "+" | snpInfoQuery$strand !="-")
   if(length(unstranded)>0){
-    query_pos <- snp_info_query[unstranded,]
-    query_pos$id <- paste0(query_pos$id, "_pos")
-    query_pos$strand <- "+"
-    query_neg <- snp_info_query[unstranded,]
-    query_neg$id <- paste0(query_neg$id, "_neg")
-    query_neg$strand <- "-"
-    snp_info_query <- rbind(snp_info_query[-unstranded,], query_pos,query_neg)
+    query.pos <- snpInfoQuery[unstranded,]
+    query.pos$id <- paste0(query.pos$id, ".pos")
+    query.pos$strand <- "+"
+    query.neg <- snpInfoQuery[unstranded,]
+    query.neg$id <- paste0(query.neg$id, ".neg")
+    query.neg$strand <- "-"
+    snpInfoQuery <- rbind(snpInfoQuery[-unstranded,], query.pos, query.neg)
   }
 
   #check for duplicated query ids
-  if(any(duplicated(snp_info_query$id))){
-    message(paste0(length(which(duplicated(snp_info_query$id)))," query ids are not unique"))
+  if(any(duplicated(snpInfoQuery$id))){
+    message(paste0(length(which(duplicated(snpInfoQuery$id)))," query ids are not unique"))
     message("Check output for new names or rename")
-    snp_info_query$id <- make.names(snp_info_query$id, unique=TRUE)
+    snpInfoQuery$id <- make.names(snpInfoQuery$id, unique=TRUE)
   }
 
-  return(snp_info_query)
+  return(snpInfoQuery)
 
 }

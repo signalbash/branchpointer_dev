@@ -1,9 +1,9 @@
 #' Predict branchpoint probability scores
 #'
 #' predicts branchpoint probability scores for each query site.
-#' @param query_attributes data.frame produced by getBranchpointSequence
+#' @param queryAttributes data.frame produced by getBranchpointSequence
 #' containing features for branchpoint prediction
-#' @param use_parallel use parallelisation to speed up code?
+#' @param useParallel use parallelisation to speed up code?
 #' (reccomended for > 500 query entries)
 #' @param cores number of cores to use in parallelisation (default = \code{1})
 #' @return data.frame with branchpoint probaility scores for each site in query_attributes
@@ -27,108 +27,108 @@
 #' query_type = "SNP",
 #' useBSgenome = TRUE,
 #' BSgenome = genome)
-#' branchpoint_predictions <- predictBranchpoints(query_attributes)
+#' branchpointPredictions <- predictBranchpoints(query_attributes)
 #' @author Beth Signal
 
-predictBranchpoints <- function(query_attributes,
-                             use_parallel=FALSE,
+predictBranchpoints <- function(queryAttributes,
+                             useParallel=FALSE,
                              cores=1){
-  if(use_parallel){
+  if(useParallel){
 
-    max_cores <- parallel::detectCores()
+    maxCores <- parallel::detectCores()
 
-    if(max_cores < cores){
+    if(maxCores < cores){
 
-      message(paste0("specified cores (", cores,") is greater than available cores(", max_cores,")"))
+      message(paste0("specified cores (", cores,") is greater than available cores(", maxCores,")"))
       message(paste0("using all available cores"))
-      cores <- max_cores
+      cores <- maxCores
 
     }
 
   }
 
-  query_attributes_formodel <- cbind(set="UNKNOWN", query_attributes)
-  query_attributes_formodel <- query_attributes_formodel[,c(1,2,9:28)]
+  queryAttributes.forModel <- cbind(set="UNKNOWN", query_attributes)
+  queryAttributes.forModel <- queryAttributes.forModel[,c(1,2,9:28)]
 
   #match to model variable names
-  colnames(query_attributes_formodel) <-  HCN_names
+  colnames(queryAttributes.forModel) <-  HCN_names
 
   #remove any rows with NA values
-  is_na <- apply(query_attributes_formodel[,-c(1,2)], 2, is.na)
+  is_na <- apply(queryAttributes.forModel[,-c(1,2)], 2, is.na)
   is_na_v <- apply(is_na,1, any)
   rm <- which(is_na_v == TRUE)
   if(length(rm) > 0){
-    query_attributes_formodel <- query_attributes_formodel[-rm,]
-    query_attributes <- query_attributes[-rm,]
+    queryAttributes.forModel <- queryAttributes.forModel[-rm,]
+    queryAttributes <- queryAttributes[-rm,]
   }
 
   #convert sequences to dummy vars
-  query_attributes_dummies <- predict(dummies, newdata=query_attributes_formodel[,-2])
-  query_attributes_formodel <- cbind(set=query_attributes_formodel$set, query_attributes_dummies)
-  query_attributes_formodel <- apply(query_attributes_formodel[,-1],2,as.numeric)
+  queryAttributes.dummies <- predict(dummies, newdata=queryAttributes.forModel[,-2])
+  queryAttributes.forModel <- cbind(set=queryAttributes.forModel$set, queryAttributes.dummies)
+  queryAttributes.forModel <- apply(queryAttributes.forModel[,-1],2,as.numeric)
 
   #make sure all dummy vars are accounted for
-  if(any(is.na(match(names(preProcValues$mean), colnames(query_attributes_formodel))))){
-    new_col_names <- names(preProcValues$mean)[which(is.na(match(names(preProcValues$mean),
-                                                                 colnames(query_attributes_formodel))))]
-    df_add <- as.data.frame(matrix(data=0,nrow=nrow(query_attributes_formodel),
-                                   ncol=length(new_col_names)))
-    colnames(df_add) <- new_col_names
-    query_attributes_formodel <- cbind(query_attributes_formodel, df_add)
-    query_attributes_formodel <- query_attributes_formodel[,match(names(preProcValues$mean),
-                                                                  colnames(query_attributes_formodel))]
+  if(any(is.na(match(names(preProcValues$mean), colnames(queryAttributes.forModel))))){
+    newColNames <- names(preProcValues$mean)[which(is.na(match(names(preProcValues$mean),
+                                                                 colnames(queryAttributes.forModel))))]
+    dfAdd <- as.data.frame(matrix(data=0,nrow=nrow(queryAttributes.forModel),
+                                   ncol=length(newColNames)))
+    colnames(dfAdd) <- newColNames
+    queryAttributes.forModel <- cbind(queryAttributes.forModel, df_add)
+    queryAttributes.forModel <- queryAttributes.forModel[,match(names(preProcValues$mean),
+                                                                  colnames(queryAttributes.forModel))]
   }
 
   #pre-process values
-  query_attributes_formodel <- predict(preProcValues, query_attributes_formodel)
-  query_attributes_formodel <- cbind(query_attributes_formodel, Class="UNKNOWN")
-  query_attributes_formodel <- as.data.frame(query_attributes_formodel, stringsAsFactors=FALSE)
-  query_attributes_formodel$Class <- as.factor(query_attributes_formodel$Class)
-  for(n in 1:(length(colnames(query_attributes_formodel)) -1)){
-    query_attributes_formodel[,n] <- as.numeric(query_attributes_formodel[,n])
+  queryAttributes.forModel <- predict(preProcValues, queryAttributes.forModel)
+  queryAttributes.forModel <- cbind(queryAttributes.forModel, Class="UNKNOWN")
+  queryAttributes.forModel <- as.data.frame(queryAttributes.forModel, stringsAsFactors=FALSE)
+  queryAttributes.forModel$Class <- as.factor(queryAttributes.forModel$Class)
+  for(n in 1:(length(colnames(queryAttributes.forModel)) -1)){
+    queryAttributes.forModel[,n] <- as.numeric(queryAttributes.forModel[,n])
   }
 
   #SVM prediction feature
-  newFeat <- kernlab::predict(branchpointer.svm,query_attributes_formodel, "probabilities")
+  newFeat <- kernlab::predict(branchpointer.svm,queryAttributes.forModel, "probabilities")
   newFeat <- newFeat[,1]
 
-  query_attributes_formodel <- cbind(query_attributes_formodel, newFeat)
+  queryAttributes.forModel <- cbind(queryAttributes.forModel, newFeat)
 
   #gbm prediction
-  p <- predict(object=branchpointer.gbm, query_attributes_formodel[,predictorNames],"prob")
+  p <- predict(object=branchpointer.gbm, queryAttributes.forModel[,predictorNames],"prob")
 
   #reconfigure
-  branchpoint_pred <- data.frame(id=query_attributes$id,branchpoint_prob=p[,1],
-                                 seq_pos0=query_attributes$seq_pos0, distance=query_attributes$to_3prime)
-  branchpoint_pred <- cbind(branchpoint_pred, allele_status = stringr::str_sub(branchpoint_pred$id, -3,-1))
+  branchpointPred <- data.frame(id=queryAttributes$id,branchpoint_prob=p[,1],
+                                 seq_pos0=query_attributes$seq_pos0, distance=queryAttributes$to_3prime)
+  branchpointPred <- cbind(branchpointPred, allele_status = stringr::str_sub(branchpointPred$id, -3,-1))
 
-  m <- match(branchpoint_pred$id, query_attributes$id)
-  branchpoint_pred <- cbind(branchpoint_pred,
-                         chromosome=query_attributes$chromosome[m],
-                         strand=query_attributes$strand[m],
-                         end=query_attributes$end[m],
-                         exon_3prime=query_attributes$exon_3prime[m],
-                         exon_5prime=query_attributes$exon_5prime[m])
+  m <- match(branchpointPred$id, queryAttributes$id)
+  branchpointPred <- cbind(branchpointPred,
+                         chromosome=queryAttributes$chromosome[m],
+                         strand=queryAttributes$strand[m],
+                         end=queryAttributes$end[m],
+                         exon_3prime=queryAttributes$exon_3prime[m],
+                         exon_5prime=queryAttributes$exon_5prime[m])
 
 
   #### U2 binding energy###
-  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(query_attributes))
+  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(queryAttributes))
 
   if(use_parallel){
     cluster <- parallel::makeCluster(cores)
-    u2_eightmers <- parallel::parApply(cluster,query_attributes[,m],1,paste, collapse="")
+    u2Eightmers <- parallel::parApply(cluster,queryAttributes[,m],1,paste, collapse="")
     parallel::stopCluster(cluster)
   }else{
-    u2_eightmers <- apply(query_attributes[,m],1,paste, collapse="")
+    u2Eightmers <- apply(queryAttributes[,m],1,paste, collapse="")
   }
 
-  x <- match(u2_eightmers, U2_binding_df$eightmers)
-  branchpoint_pred$U2_binding_energy <- U2_binding_df$energy[x]
+  x <- match(u2Eightmers, U2_binding_df$eightmers)
+  branchpointPred$U2_binding_energy <- U2_binding_df$energy[x]
 
 
-  branchpoint_pred$id <- stringr::str_sub(branchpoint_pred$id,1,-8)
-  branchpoint_pred <- branchpoint_pred[order(branchpoint_pred[,1], branchpoint_pred[,5], branchpoint_pred[,4]),]
-  colnames(branchpoint_pred)[which(colnames(branchpoint_pred) == "seq_pos0")] <- "nucleotide"
+  branchpointPred$id <- stringr::str_sub(branchpointPred$id,1,-8)
+  branchpointPred <- branchpointPred[order(branchpointPred[,1], branchpointPred[,5], branchpointPred[,4]),]
+  colnames(branchpointPred)[which(colnames(branchpointPred) == "seq_pos0")] <- "nucleotide"
 
-  return(branchpoint_pred)
+  return(branchpointPred)
 }

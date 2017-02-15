@@ -26,10 +26,10 @@
 #' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 #' @author Beth Signal
 
-getQueryLoc <- function(query, query_type,max_dist=50, filter=TRUE, exons,
-                        use_parallel=FALSE, cores=1){
+getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
+                        useParallel=FALSE, cores=1){
 
-  if(missing(query_type) | !(query_type %in% c("SNP", "region"))){
+  if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
 
     stop("please specify query_type as \"region\" or \"SNP\"")
 
@@ -41,152 +41,152 @@ getQueryLoc <- function(query, query_type,max_dist=50, filter=TRUE, exons,
 
   }
 
-  if(use_parallel){
+  if(useParallel){
 
-    max_cores <- parallel::detectCores()
+    maxCores <- parallel::detectCores()
 
     if(max_cores < cores){
 
-      message(paste0("specified cores (", cores,") is greater than available cores(", max_cores,")"))
+      message(paste0("specified cores (", cores,") is greater than available cores(", maxCores,")"))
       message(paste0("using all available cores"))
-      cores=max_cores
+      cores <- maxCores
 
     }
 
   }
 
-  if(query_type=="SNP"){
+  if(queryType=="SNP"){
 
       if(filter){
         message("filtering for SNPs in branchpoint windows")
-        introns=exonsToIntrons(exons, max_dist)
-        query_2=paste(query$chromosome, query$chrom_start, sep="_")
-        query_2=gsub(" ","", query_2)
-        x=match(query_2, introns)
-        rm=which(is.na(x))
+        introns <- exonsToIntrons(exons, maxDist)
+        query.2 <- paste(query$chromosome, query$chrom_start, sep="_")
+        query.2 <- gsub(" ","", query.2)
+        x <- match(query.2, introns)
+        rm <- which(is.na(x))
         if(length(rm)>0){
           query <- query[-rm,]
         }
       }
     }
 
-  if(use_parallel){
+  if(useParallel){
     cluster <- makeCluster(cores)
-    nearest_exons <- parApply(cluster,query,1,getExonDists,exons, query_type)
+    nearestExons <- parApply(cluster,query,1,getExonDists,exons, queryType)
     stopCluster(cluster)
   }else{
-    nearest_exons <- apply(query,1,getExonDists,exons,query_type)
+    nearestExons <- apply(query,1,getExonDists,exons,queryType)
   }
 
-  nearest_exons <- matrix(unlist(nearest_exons), ncol=5, byrow = TRUE)
-  nearest_exons <- as.data.frame((nearest_exons), stringsAsFactors=FALSE)
-  rownames(nearest_exons) <- query$id
-  colnames(nearest_exons) <- c("to_3prime","to_5prime","same_gene","exon_3prime","exon_5prime")
-  nearest_exons$to_3prime <- as.numeric(nearest_exons$to_3prime)
-  nearest_exons$to_5prime <- as.numeric(nearest_exons$to_5prime)
+  nearestExons <- matrix(unlist(nearestExons), ncol = 5, byrow = TRUE)
+  nearestExons <- as.data.frame((nearestExons), stringsAsFactors = FALSE)
+  rownames(nearestExons) <- query$id
+  colnames(nearestExons) <- c("to_3prime","to_5prime","same_gene","exon_3prime","exon_5prime")
+  nearestExons$to_3prime <- as.numeric(nearestExons$to_3prime)
+  nearestExons$to_5prime <- as.numeric(nearestExons$to_5prime)
 
   #remove any points not in same gene
-  rm <- which((!is.na(nearest_exons$same_gene) & nearest_exons$same_gene == FALSE) |
-    is.na(nearest_exons$exon_3prime) | is.na(nearest_exons$exon_5prime))
+  rm <- which((!is.na(nearestExons$same_gene) & nearestExons$same_gene == FALSE) |
+    is.na(nearestExons$exon_3prime) | is.na(nearestExons$exon_5prime))
 
   if(length(rm) > 0){
 
     query <- query[-rm,]
-    nearest_exons <- nearest_exons[-rm,]
+    nearestExons <- nearestExons[-rm,]
 
   }
 
 
-  if(query_type=="region"){
+  if(queryType=="region"){
     #if introns regions are closer to the 3'SS than the branchpoint region
     # move the region to cover the window of the nearest exon
-    near_3 <- which(nearest_exons$to_3prime < 18)
-    if(length(near_3) > 0){
-      add_distance <- 18 - nearest_exons$to_3prime[near_3]
+    near3 <- which(nearestExons$to_3prime < 18)
+    if(length(near3) > 0){
+      addDistance <- 18 - nearestExons$to_3prime[near3]
       #positive strand
-      query$chrom_end[near_3][(query$strand[near_3] == "+")] <-
-        query$chrom_end[near_3][(query$strand[near_3] == "+")] -
-        add_distance[(query$strand[near_3] == "+")]
+      query$chrom_end[near3][(query$strand[near3] == "+")] <-
+        query$chrom_end[near3][(query$strand[near3] == "+")] -
+        addDistance[(query$strand[near3] == "+")]
       #negative strand
-      query$chrom_start[near_3][(query$strand[near_3] == "-")] <-
-        query$chrom_start[near_3][(query$strand[near_3] == "-")] +
-        add_distance[(query$strand[near_3] == "-")]
+      query$chrom_start[near3][(query$strand[near3] == "-")] <-
+        query$chrom_start[near3][(query$strand[near3] == "-")] +
+        addDistance[(query$strand[near3] == "-")]
     }
 
     # remove instances where the query region is to close to the exon
-    start_to_end <- query$chrom_start <= query$chrom_end
-    if(any(!start_to_end)){
-      rm <- which(start_to_end == FALSE)
+    startToEnd <- query$chrom_start <= query$chrom_end
+    if(any(!startToEnd)){
+      rm <- which(startTo_End == FALSE)
       query <- query[-rm,]
-      nearest_exons <- nearest_exons[-rm,]
+      nearestExons <- nearestExons[-rm,]
     }
 
     #if introns regions are further from the 3'SS than the branchpoint region
-    not_near_3 <- which(nearest_exons$to_3prime > 44)
-    if(length(not_near_3) > 0){
-      query <- query[-not_near_3,]
-      nearest_exons <- nearest_exons[-not_near_3,]
+    notNear3 <- which(nearestExons$to_3prime > 44)
+    if(length(notNear3) > 0){
+      query <- query[-notNear3,]
+      nearestExons <- nearestExons[-notNear3,]
     }
 
     #get exon distances for re-aligned windows
-    if(use_parallel){
+    if(useParallel){
       cluster <- makeCluster(cores)
-      nearest_exons <- parApply(cluster,query,1,getExonDists,exons,query_type)
+      nearestExons <- parApply(cluster,query,1,getExonDists,exons,queryType)
       stopCluster(cluster)
     }else{
-      nearest_exons <- apply(query,1,getExonDists,exons,query_type)
+      nearestExons <- apply(query,1,getExonDists,exons,queryType)
     }
 
-    nearest_exons <- as.data.frame(t(nearest_exons),stringsAsFactors = FALSE)
-    rownames(nearest_exons) <- query$id
-    colnames(nearest_exons) <- c("to_3prime","to_5prime","same_gene","exon_3prime","exon_5prime")
-    nearest_exons$to_3prime <- as.numeric(nearest_exons$to_3prime)
-    nearest_exons$to_5prime <- as.numeric(nearest_exons$to_5prime)
+    nearestExons <- as.data.frame(t(nearestExons),stringsAsFactors = FALSE)
+    rownames(nearestExons) <- query$id
+    colnames(nearestExons) <- c("to_3prime","to_5prime","same_gene","exon_3prime","exon_5prime")
+    nearestExons$to_3prime <- as.numeric(nearestExons$to_3prime)
+    nearestExons$to_5prime <- as.numeric(nearestExons$to_5prime)
 
 
     #adjust query location to only cover the 27nt window
-    move <- 18 - nearest_exons$to_3prime
+    move <- 18 - nearestExons$to_3prime
 
-    query_region_bp <- query
-    query_region_bp$chrom_end[query_region_bp$strand == "+"] <-
-      query_region_bp$chrom_end[query_region_bp$strand == "+"] -
-      move[query_region_bp$strand == "+"]
-    query_region_bp$chrom_start[query_region_bp$strand == "-"] <-
-      query_region_bp$chrom_start[query_region_bp$strand == "-"] +
-      move[query_region_bp$strand == "-"]
+    queryRegionBP <- query
+    queryRegionBP$chrom_end[queryRegionBP$strand == "+"] <-
+      queryRegionBP$chrom_end[queryRegionBP$strand == "+"] -
+      move[queryRegionBP$strand == "+"]
+    queryRegionBP$chrom_start[queryRegionBP$strand == "-"] <-
+      queryRegionBP$chrom_start[queryRegionBP$strand == "-"] +
+      move[queryRegionBP$strand == "-"]
 
-    new_start <- query_region_bp$chrom_end[query_region_bp$strand == "+"] -26
-    replace_start <- query_region_bp$chrom_start[query_region_bp$strand == "+"] < new_start
-    query_region_bp$chrom_start[query_region_bp$strand == "+"][replace_start] <- new_start[replace_start]
+    newStart <- queryRegionBP$chrom_end[queryRegionBP$strand == "+"] -26
+    replaceStart <- queryRegionBP$chrom_start[queryRegionBP$strand == "+"] < newStart
+    queryRegionBP$chrom_start[queryRegionBP$strand == "+"][replace_start] <- newStart[replaceStart]
 
-    new_start <- query_region_bp$chrom_start[query_region_bp$strand == "-"] +26
-    replace_start <- query_region_bp$chrom_end[query_region_bp$strand == "-"] > new_start
-    query_region_bp$chrom_end[query_region_bp$strand == "-"][replace_start] <- new_start[replace_start]
+    newStart <- queryRegionBP$chrom_start[queryRegionBP$strand == "-"] +26
+    replaceStart <- queryRegionBP$chrom_end[queryRegionBP$strand == "-"] > newStart
+    queryRegionBP$chrom_end[queryRegionBP$strand == "-"][replace_start] <- newStart[replaceStart]
 
-    queryLoc=cbind(query_region_bp, nearest_exons, stringsAsFactors=FALSE)
-  }else if(query_type=="SNP"){
+    queryLoc <- cbind(queryRegionBP, nearestExons, stringsAsFactors=FALSE)
+  }else if(queryType=="SNP"){
 
     #if a 5' or 3' exon can't be found remove from analysis
-    if(any(nearest_exons$to_3prime==-1 | nearest_exons$to_5prime==-1)){
-      rm <- which((nearest_exons$to_3prime==-1 | nearest_exons$to_5prime==-1))
+    if(any(nearestExons$to_3prime==-1 | nearestExons$to_5prime==-1)){
+      rm <- which((nearestExons$to_3prime==-1 | nearestExons$to_5prime==-1))
       query <- query[-rm,]
-      nearest_exons <- nearest_exons[-rm,]
+      nearestExons <- nearestExons[-rm,]
     }
 
-    if(any(nearest_exons$to_3prime > max_dist)){
-      rm <- which(nearest_exons$to_3prime >max_dist)
+    if(any(nearestExons$to_3prime > maxDist)){
+      rm <- which(nearestExons$to_3prime > maxDist)
       query <- query[-rm,]
-      nearest_exons <- nearest_exons[-rm,]
+      nearestExons <- nearestExons[-rm,]
     }
 
     #check both exons come from the same parent gene (i.e query is in intronic region)
     #fix 1/0 TRUE/FALSE encoding
-    if(any(nearest_exons$same_gene==0)){
-      rm <- which(nearest_exons$same_gene==0)
+    if(any(nearestExons$same_gene == 0)){
+      rm <- which(nearestExons$same_gene == 0)
       query <- query[-rm,]
-      nearest_exons <- nearest_exons[-rm,]
+      nearestExons <- nearestExons[-rm,]
     }
-    queryLoc <- cbind(query, nearest_exons)
+    queryLoc <- cbind(query, nearestExons)
   }
   return(queryLoc)
 }

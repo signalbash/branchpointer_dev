@@ -3,10 +3,10 @@
 #' Reads and formats a query file, generated from snpToQuery, or manually generated.
 #' Converts unstranded SNPs to two entries for each strand.
 #' Checks for duplicate names and replaces if found.
-#' @param query_file tab delimited file containing query information.
+#' @param queryFile tab delimited file containing query information.
 #' For intronic regions should be in the format: region id, chromosome name, region start, region id, strand.
 #' For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)
-#' @param query_type type of query file (\code{"SNP"} or \code{"region"})
+#' @param queryType type of query file (\code{"SNP"} or \code{"region"})
 #' @return data.frame with formatted query
 #' @export
 #' @import data.table
@@ -18,12 +18,12 @@
 #' query <- readQueryFile(query_snp,query_type = "region")
 #' @author Beth Signal
 
-readQueryFile <- function(query_file, query_type){
+readQueryFile <- function(queryFile, queryType){
 
-  if(missing(query_type)){
+  if(missing(queryType)){
 
     queryTest <- fread(
-      query_file,header = TRUE,
+      queryFile,header = TRUE,
       nrows=1
       )
 
@@ -56,7 +56,7 @@ readQueryFile <- function(query_file, query_type){
     if (query_type == "SNP") {
 
       query <- fread(
-        query_file,header = TRUE,
+        queryFile,header = TRUE,
         colClasses = c(
           "character", "character", "numeric",
           "character", "character", "character"
@@ -74,20 +74,20 @@ readQueryFile <- function(query_file, query_type){
       unstranded <- which(query$strand != "+" | query$strand != "-")
       if (length(unstranded) > 0) {
 
-        query_pos <- query[unstranded,]
-        query_pos$id <- paste0(query_pos$id, "_pos")
-        query_pos$strand <- "+"
-        query_neg <- query[unstranded,]
-        query_neg$id <- paste0(query_neg$id, "_neg")
-        query_neg$strand <- "-"
-        query <- rbind(query[-unstranded,], query_pos,query_neg)
+        query.pos <- query[unstranded,]
+        query.pos$id <- paste0(query.pos$id, "_pos")
+        query.pos$strand <- "+"
+        query.neg <- query[unstranded,]
+        query.neg$id <- paste0(query.neg$id, "_neg")
+        query.neg$strand <- "-"
+        query <- rbind(query[-unstranded,], query.pos,query.neg)
 
       }
 
-    }else if (query_type == "region") {
+    }else if (queryType == "region") {
 
       query <- fread(
-        query_file, header = TRUE,colClasses = c(
+        queryFile, header = TRUE,colClasses = c(
           "character","character","numeric","numeric","character"
         )
       )

@@ -3,7 +3,7 @@
 #' Genrate branchpoint window regions corresponding to annotated exon(s) within a
 #' queried gene, transcript or exon id
 #' @param id identifier for the query gene/transcript/exon id
-#' @param id_type type of id to match in the exon annotation file (\code{"gene_id"},
+#' @param idType type of id to match in the exon annotation file (\code{"gene_id"},
 #' \code{"transcript_id"}, or \code{"exon_id"})
 #' @param exons data.frame containing exon co-ordinates.
 #' Should be produced by gtfToExons()
@@ -18,23 +18,23 @@
 #' windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
 #' @author Beth Signal
 
-makeRegions <- function(id, id_type, exons) {
+makeRegions <- function(id, idType, exons) {
 
-  valid_types <- c("gene_id", "transcript_id","exon_id")
+  validTypes <- c("gene_id", "transcript_id","exon_id")
 
   #missing or invalid types
-  no_type <- missing(id_type)
+  noType <- missing(idType)
 
-  if(!no_type){
+  if(!noType){
 
-    no_type <-  no_type | !(id_type %in% valid_types)
+    noType <-  noType | !(idType %in% validTypes)
 
   }
 
 
-  if (!no_type) {
+  if (!noType) {
 
-    x <- which(colnames(exons) == id_type)
+    x <- which(colnames(exons) == idType)
     y <- grep(id, exons[,x])
 
   }else{
@@ -44,24 +44,24 @@ makeRegions <- function(id, id_type, exons) {
   }
 
   #go through possible columns if no matches found
-  if (length(y) == 0 | no_type) {
+  if (length(y) == 0 | noType) {
 
-    id_type <- valid_types[1]
-    x <- which(colnames(exons) == id_type)
+    idType <- validTypes[1]
+    x <- which(colnames(exons) == idType)
     y <- grep(id, exons[,x])
 
     if (length(y) == 0) {
 
-      id_type <- valid_types[2]
-      x <- which(colnames(exons) == id_type)
+      idType <- validTypes[2]
+      x <- which(colnames(exons) == idType)
       y <- grep(id, exons[,x])
 
     }
 
     if (length(y) == 0) {
 
-      id_type <- valid_types[3]
-      x <- which(colnames(exons) == id_type)
+      idType <- validTypes[3]
+      x <- which(colnames(exons) == idType)
       y <- grep(id, exons[,x])
 
     }
@@ -75,7 +75,7 @@ makeRegions <- function(id, id_type, exons) {
   }
 
   #use a subset of the exon annotation for faster processing
-  if (id_type != "gene_id") {
+  if (idType != "gene_id") {
 
     gene_id <- exons$gene_id[y[1]]
     y2 <- which(!is.na(match(exons$gene_id,gene_id)))
@@ -86,35 +86,35 @@ makeRegions <- function(id, id_type, exons) {
 
   }
 
-  exons_subset <- exons[y,]
+  exons.subset <- exons[y,]
 
   #by definition first exons shouldn' have branchpoints
-  keep <- which(exons_subset$exon_number > 1)
+  keep <- which(exons.subset$exon_number > 1)
 
-  if (exons_subset$strand[1] == "+") {
+  if (exons.subset$strand[1] == "+") {
 
-    window_starts <- (exons_subset$start - 50)[keep]
-    window_ends <- (exons_subset$start - 10)[keep]
+    windowstarts <- (exons.subset$start - 50)[keep]
+    windowends <- (exons.subset$start - 10)[keep]
 
   }else{
 
-    window_starts <- (exons_subset$end + 10)[keep]
-    window_ends <- (exons_subset$end + 50)[keep]
+    windowStarts <- (exons.subset$end + 10)[keep]
+    windowEnds <- (exons.subset$end + 50)[keep]
 
   }
 
-  window_df <- data.frame(
-    id = exons_subset$exon_id[keep],
-    chromosome = exons_subset$chromosome[keep],
-    chrom_start = window_starts,
-    chrom_end = window_ends,
-    strand = exons_subset$strand[keep]
+  windowDF <- data.frame(
+    id = exons.subset$exon_id[keep],
+    chromosome = exons.subset$chromosome[keep],
+    chrom_start = window_Starts,
+    chrom_end = windowEnds,
+    strand = exons.subset$strand[keep]
   )
 
-  window_df <- window_df[!duplicated(window_df$id),]
+  windowDF <- windowDF[!duplicated(windowDF$id),]
 
-  exons_subset <- exons[y2,]
+  exons.subset <- exons[y2,]
 
-  return(getQueryLoc(window_df,query_type = "region",exons = exons_subset))
+  return(getQueryLoc(windowDF,queryType = "region",exons = exons.subset))
 
 }
