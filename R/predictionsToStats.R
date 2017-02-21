@@ -4,7 +4,7 @@
 #' and alternative SNP and summarises the effect(s) of the SNP.
 #' @param predictions site-wide branchpoint proability predictions
 #' produced from predictBranchpoints()
-#' @param query query data.frame containing all snp ids to be summarised
+#' @param query query GRanges containing all SNP ids to be summarised
 #' @param probabilityCutoff Value to be used as the cutoff for
 #' discriminating branchpoint sites from non-branchpoint sites
 #' (default = \code{0.5})
@@ -14,14 +14,15 @@
 #' @return data.frame with summarised branchpoint changes
 #' occuring within the intron due to a SNP.
 #' @export
+#' @import GenomicRanges
 #' @examples
-#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
 #' package = "branchpointer")
-#' exons <- readExonAnnotation(small_exons)
+#' exons <- gtfToExons(smallExons)
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
-#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(querySNP,query_type = "SNP")
 #' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
 #' query_attributes <- getBranchpointSequence(query,
 #' query_type = "SNP",
@@ -31,115 +32,89 @@
 #' snp_stats <- predictionsToStats(branchpoint_predictions, query)
 #' @author Beth Signal
 #'
-predictionsToStats <- function(predictions, query,
+predictionsToStats <- function(query,
+                               predictions,
                                probabilityCutoff = 0.5,
                                probabilityChange = 0.2){
 
-  snpIDs <- query$id
-
-  branchpointSNPstats <- data.frame(id = snpIDs,
-                                      BP_num_REF = NA,
-                                      BP_num_ALT = NA,
-                                      deleted_n = NA,
-                                      created_n = NA,
-                                      dist_to_exon = NA,
-                                      dist_to_BP_REF = NA,
-                                      dist_to_BP_ALT = NA,
-                                      max_prob_REF = NA,
-                                      max_prob_ALT = NA,
-                                      max_U2_REF = NA,
-                                      max_U2_ALT = NA)
+  snpIDs <- query@elementMetadata$id
+  
+  query@elementMetadata$BP_num_REF = NA
+  query@elementMetadata$BP_num_ALT = NA
+  query@elementMetadata$deleted_n = NA
+  query@elementMetadata$created_n = NA
+  query@elementMetadata$dist_to_BP_REF = NA
+  query@elementMetadata$dist_to_BP_ALT = NA
+  query@elementMetadata$max_prob_REF = NA
+  query@elementMetadata$max_prob_ALT = NA
+  query@elementMetadata$max_U2_REF = NA
+  query@elementMetadata$max_U2_ALT = NA
 
     for(z in seq(along = snpIDs)){
       #match snp id to predictions
-      branchpoint.mutated <- predictions[which(!is.na(match(predictions$id, snp_ids[z]))),]
+      predictions.snp <- predictions[predictions@elementMetadata$id == snpIDs[z]]
 
       #match snp id to query attributes
-      info <- query[which(!is.na(match(query$id, snpIDs[z]))),]
+      queryIndex <- which(query@elementMetadata$id == snpIDs[z])
 
       #find location of the SNP relative to the annotated 3'exon
-      if(min(abs(branchpoint.mutated$end - info$chrom_start)) == 0){
-        branchpointSNPstats$dist_to_exon[z] <- branchpoint.mutated$distance[which.min(abs(branchpoint.mutated$end - info$chrom_start))]
-      }else{
-        if(info$strand == "+"){
-          exonStart <- branchpoint.mutated$end[1] + branchpoint.mutated$distance[1]
-          branchpointSNPstats$dist_to_exon[z] <- exonStart - info$chrom_start
-        }else{
-          exonStart <- branchpoint_mutated$end[1] - branchpoint.mutated$distance[1]
-          branchpointSNPstats$dist_to_exon[z] <- info$chrom_start - exonStart
-        }
-      }
+       #elementMeta$to_3prime
 
       # find location of the SNP relative to the predicted BPs
       # in reference and alternative sequences
-      diffs.ref <- branchpointSNPstats$dist_to_exon[z] -
-        branchpoint.mutated$distance[branchpoint.mutated$allele_status=="REF"][which(
-        branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status=="REF"] >= probabilityCutoff)]
-
-      branchpointSNPstats$BP_num_REF[z] <- length(diffs.ref)
-
-      if(branchpointSNPstats$BP_num_REF[z] > 0){
-        branchpointSNPstats$dist_to_BP_REF[z] <- diffs.ref[which.min(abs(diffs.ref))]
-      }else{
-        branchpointSNPstats$dist_to_BP_REF[z] <- NA
+      
+      branchpointIndex.ref <- which(predictions.snp@elementMetadata$status == "REF" & 
+                                      predictions.snp@elementMetadata$branchpoint_prob >= probabilityCutoff)
+      
+      diffs.ref <- predictions.snp@elementMetadata$to_3prime[branchpointIndex.ref] - 
+        predictions.snp@elementMetadata$to_3prime_point[branchpointIndex.ref] 
+      query@elementMetadata$BP_num_REF[queryIndex] <- length(diffs.ref)
+      
+      if(length(diffs.ref) > 0){
+        query@elementMetadata$dist_to_BP_REF[queryIndex] <- diffs.ref[which.min(abs(diffs.ref))]
       }
 
-      diffs.alt <- branchpointSNPstats$dist_to_exon[z]-branchpoint.mutated$distance[branchpoint.mutated$allele_status=="ALT"][which(
-        branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status=="ALT"] >= probabilityCutoff)]
-
-      branchpointSNPstats$BP_num_ALT[z] <- length(diffs.alt)
-
-      if(branchpointSNPstats$BP_num_ALT[z] >0){
-        branchpointSNPstats$dist_to_BP_ALT[z] <- diffs.alt[which.min(abs(diffs.alt))]
-      }else{
-        branchpointSNPstats$dist_to_BP_ALT[z] <- NA
+      branchpointIndex.alt <- which(predictions.snp@elementMetadata$status == "ALT" & 
+                                      predictions.snp@elementMetadata$branchpoint_prob >= probabilityCutoff)
+      
+      diffs.alt <- predictions.snp@elementMetadata$to_3prime[branchpointIndex.alt] - 
+        predictions.snp@elementMetadata$to_3prime_point[branchpointIndex.alt] 
+      query@elementMetadata$BP_num_ALT[queryIndex] <- length(diffs.alt)
+      
+      if(length(diffs.alt) > 0){
+        query@elementMetadata$dist_to_BP_ALT[queryIndex] <- diffs.alt[which.min(abs(diffs.alt))]
       }
-
-      # maximum branchpoint probability score
-      BP.ref <- which(branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status == "REF"] > probabilityCutoff)
-      branchpointSNPstats$max_prob_REF[z] <- max(branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status == "REF"])
-
+          
+      query@elementMetadata$max_prob_REF[queryIndex] <- 
+        max(predictions.snp@elementMetadata$branchpoint_prob[predictions.snp@elementMetadata$status == "REF"])
+      query@elementMetadata$max_prob_ALT[queryIndex] <- 
+        max(predictions.snp@elementMetadata$branchpoint_prob[predictions.snp@elementMetadata$status == "ALT"])
+      
       # maximum U2 binding energy of all branchpoint sites
       # above the probability cutoff
-      if(branchpointSNPstats$BP_num_REF[z] > 0){
-        branchpointSNPstats$max_U2_REF[z] <- max(
-          branchpoint.mutated$U2_binding_energy[branchpoint.mutated$allele_status == "REF"][BP.ref])
-      }else{
-        branchpointSNPstats$max_U2_REF[z] <- NA
+      if(length(diffs.ref) > 0){
+        query@elementMetadata$max_U2_REF[queryIndex] <- 
+          max(predictions.snp@elementMetadata$U2_binding_energy[branchpointIndex.ref])
       }
-
-      # maximum branchpoint probability score
-      BP.alt <- which(branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status=="ALT"] > probabilityCutoff)
-      branchpointSNPstats$max_prob_ALT[z] <- max(branchpoint.mutated$branchpoint_prob[branchpoint.mutated$allele_status=="ALT"])
-
-      # maximum U2 binding energy of all branchpoint sites
-      # above the probability cutoff
-      if(branchpointSNPstats$BP_num_ALT[z] > 0){
-        branchpointSNPstats$max_U2_ALT[z] <- max(branchpoint.mutated$U2_binding_energy[branchpoint.mutated$allele_status=="ALT"][BP.alt] )
-      }else{
-        branchpointSNPstats$max_U2_ALT[z] <- NA
+      
+      if(length(diffs.alt) > 0){
+        query@elementMetadata$max_U2_ALT[queryIndex] <- 
+          max(predictions.snp@elementMetadata$U2_binding_energy[branchpointIndex.alt])
       }
 
       # all sites (ref & alt) called as branchpoints
-      dists <- unique(branchpoint.mutated$distance[branchpoint.mutated$branchpoint_prob > probabilityCutoff])
+      branchpointLocs <- unique(predictions.snp@elementMetadata$to_3prime_point[c(branchpointIndex.ref, branchpointIndex.alt)])
 
       #probabiltiy scores for ref/alt at all BP sites
-      prob.ref <- branchpoint.mutated[branchpoint.mutated$allele_status=="REF" & branchpoint.mutated$distance %in% dists,]$branchpoint_prob
-      prob.alt <- branchpoint.mutated[branchpoint.mutated$allele_status=="ALT" & branchpoint.mutated$distance %in% dists,]$branchpoint_prob
+      prob.ref <- predictions.snp@elementMetadata$branchpoint_prob[which(predictions.snp@elementMetadata$status == "REF" & predictions.snp@elementMetadata$to_3prime_point %in% branchpointLocs)]
+      prob.alt <- predictions.snp@elementMetadata$branchpoint_prob[which(predictions.snp@elementMetadata$status == "ALT" & predictions.snp@elementMetadata$to_3prime_point %in% branchpointLocs)]
 
       #change must be of sufficient magnitude to be called as created or deleted
-      branchpointSNPstats$deleted_n[z] = length(which((prob.ref - prob.alt) > probabilityChange &
+      query@elementMetadata$deleted_n[queryIndex] <- length(which((prob.ref - prob.alt) > probabilityChange &
                                                           (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
-      branchpointSNPstats$created_n[z] = length(which((prob.ref - prob.alt) < (probabilityChange * -1) &
+      query@elementMetadata$created_n[queryIndex] <- length(which((prob.ref - prob.alt) < (probabilityChange * -1) &
                                                           (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
     }
-
-  m <- match(snpIDs, query$id)
-  n <- which(colnames(query) %in% c("id","chromosome","chrom_start","strand",
-                                    "ref_allele","alt_allele") & !duplicated(colnames(query)))
-
-  branchpointSNPstats <- cbind(query[m,n],
-                                 branchpointSNPstats[,-1])
-
-  return(branchpointSNPstats)
+  
+  return(query)
 }

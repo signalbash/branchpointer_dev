@@ -47,10 +47,17 @@ predictBranchpoints <- function(queryAttributes,
 
   }
 
-  queryAttributes.forModel <- cbind(set="UNKNOWN", query_attributes)
-  queryAttributes.forModel <- queryAttributes.forModel[,c(1,2,9:28)]
-
-  #match to model variable names
+  #convert to data.frame for kernlab/caret
+  
+  queryAttributes.forModel <- as.data.frame(queryAttributes@elementMetadata)
+  
+  colNamesForDataFrame <- HCN_names[-1]
+  colNamesForDataFrame <- gsub("new_ID", "id", colNamesForDataFrame)
+  colNamesForDataFrame <- gsub("dist.1", "to_5prime_point", colNamesForDataFrame)
+  colNamesForDataFrame <- gsub("dist.2", "to_3prime_point", colNamesForDataFrame)
+  
+  queryAttributes.forModel <- queryAttributes.forModel[,colNamesForDataFrame]
+  queryAttributes.forModel <- cbind(set="UNKNOWN", queryAttributes.forModel)
   colnames(queryAttributes.forModel) <-  HCN_names
 
   #remove any rows with NA values
@@ -98,37 +105,28 @@ predictBranchpoints <- function(queryAttributes,
   p <- predict(object=branchpointer.gbm, queryAttributes.forModel[,predictorNames],"prob")
 
   #reconfigure
-  branchpointPred <- data.frame(id=queryAttributes$id,branchpoint_prob=p[,1],
-                                 seq_pos0=query_attributes$seq_pos0, distance=queryAttributes$to_3prime)
-  branchpointPred <- cbind(branchpointPred, allele_status = stringr::str_sub(branchpointPred$id, -3,-1))
-
-  m <- match(branchpointPred$id, queryAttributes$id)
-  branchpointPred <- cbind(branchpointPred,
-                         chromosome=queryAttributes$chromosome[m],
-                         strand=queryAttributes$strand[m],
-                         end=queryAttributes$end[m],
-                         exon_3prime=queryAttributes$exon_3prime[m],
-                         exon_5prime=queryAttributes$exon_5prime[m])
-
+  
+  queryAttributes@elementMetadata$branchpoint_prob <- p[,1]
 
   #### U2 binding energy###
-  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(queryAttributes))
+  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(queryAttributes@elementMetadata))
 
-  if(use_parallel){
+  if(useParallel){
     cluster <- parallel::makeCluster(cores)
-    u2Eightmers <- parallel::parApply(cluster,queryAttributes[,m],1,paste, collapse="")
+    U2Eightmers <- parallel::parApply(cluster,as.data.frame(queryAttributes@elementMetadata[,m]),1,paste, collapse="")
     parallel::stopCluster(cluster)
   }else{
-    u2Eightmers <- apply(queryAttributes[,m],1,paste, collapse="")
+    #needs as.data.frame to treat rows as vectors
+    U2Eightmers <- apply(as.data.frame(queryAttributes@elementMetadata[,m]),1,paste, collapse="")
   }
 
-  x <- match(u2Eightmers, U2_binding_df$eightmers)
-  branchpointPred$U2_binding_energy <- U2_binding_df$energy[x]
+  x <- match(U2Eightmers, U2_binding_df$eightmers)
+  queryAttributes@elementMetadata$U2_binding_energy <- U2_binding_df$energy[x]
 
 
-  branchpointPred$id <- stringr::str_sub(branchpointPred$id,1,-8)
-  branchpointPred <- branchpointPred[order(branchpointPred[,1], branchpointPred[,5], branchpointPred[,4]),]
-  colnames(branchpointPred)[which(colnames(branchpointPred) == "seq_pos0")] <- "nucleotide"
+  #branchpointPred$id <- stringr::str_sub(branchpointPred$id,1,-8)
+  #branchpointPred <- branchpointPred[order(branchpointPred[,1], branchpointPred[,5], branchpointPred[,4]),]
+  #colnames(branchpointPred)[which(colnames(branchpointPred) == "seq_pos0")] <- "nucleotide"
 
-  return(branchpointPred)
+  return(queryAttributes)
 }

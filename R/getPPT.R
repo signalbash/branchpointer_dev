@@ -16,10 +16,10 @@
 
 getPPT <- function(attributesLine){
 
-  dist3prime <- as.numeric(attributesLine[3])
+  dist3prime <- as.numeric(attributesLine@elementMetadata$to_3prime_point)
 
   #get sequence between the tested site and 3'exon
-  seq <- substr(attributesLine[4], 251, (250 + dist3prime))
+  seq <- substr(attributesLine@elementMetadata$seq, 251, (250 + dist3prime))
   seq <- unlist(strsplit(seq, ""))
 
   pyramidines <- which(seq == "T" | seq == "C")

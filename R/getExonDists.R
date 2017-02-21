@@ -14,6 +14,7 @@
 #' whether these exons are part of the same gene (i.e is the location intronic),
 #' and the identifiers for the 3' and 5' exons.
 #' @export
+#' @import GenomicRanges
 #' @examples
 #' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
 #' package = "branchpointer")
@@ -24,128 +25,44 @@
 #' @author Beth Signal
 
 getExonDists <- function(queryLine, exonAnnotation, queryType){
-
+  
   # if using regions, region start will be used for negative strand queries
   # & region end for positive strand queries
-  if(queryType=="region"){
-    query.start <- as.numeric(queryLine[3])
-    query.end <- as.numeric(queryLine[4])
-    query.chrom <- as.character(queryLine[2])
-    query.strand <- as.character(queryLine[5])
-  }else if(queryType=="SNP"){
-    query.start <- as.numeric(queryLine[3])
-    query.end <- as.numeric(queryLine[3])
-    query.chrom <- as.character(queryLine[2])
-    query.strand <- as.character(queryLine[4])
-  }
-
-  #match strand and chromosome
-  exonAnnotation.subset <- exonAnnotation[which(exonAnnotation$strand == query.strand &
-                                                    exonAnnotation$chromosome == query.chrom),]
-  if(query.strand == "+"){
-
-    #get distance to from query point to all exon starts (3' exon distance)
-    #need to remove exon # == 1 for 3' exons
-    to3prime <- exonAnnotation.subset$start[which(exonAnnotation.subset$exon_number > 1)] - query.end
-
-    #get gene and exon id of nearest exon
-    ind3prime <- which.min(to3prime[to3prime > 0])
-
-    if(length(ind3prime) == 0){
-
-      gene3=NA
-      exon3=NA
-
-    } else {
-
-      gene3 <- exonAnnotation.subset$gene_id[which(exonAnnotation.subset$exon_number > 1)][which(to3prime >0)[ind3prime]]
-      exon3 <- exonAnnotation.subset$exon_id[which(exonAnnotation.subset$exon_number > 1)][which(to3prime >0)[ind3prime]]
-
-    }
-
-    #get minimum distance
-    if(all(to3prime <= 0)){
-      to3prime <- -1
-    }else{
-      to3prime <- min(to3prime[to3prime > 0])
-    }
-
-    #get distance to from query point to all exon ends (5' exon distance)
-    to5prime <- query.end - exonAnnotation.subset$end
-
-    #get gene and exon id of nearest exon
-    ind5prime <- which.min(to5prime[to5prime > 0])
-
-    if(length(ind5prime) == 0){
-
-      gene5=NA
-      exon5=NA
-
-    } else {
-
-      gene5 <- exonAnnotation.subset$gene_id[which(to5prime >0)[ind5prime]]
-      exon5 <- exonAnnotation.subset$exon_id[which(to5prime >0)[ind5prime]]
-
-    }
-    #get minimum distance
-    if(all(to5prime <= 0)){
-      to5prime <- -1
-    }else{
-      to5prime <- min(to5prime[to5prime > 0])
-    }
-
+  
+  #faster when exonAnnotation is filtered
+  exonAnnotation.subset <- exonAnnotation[(exonAnnotation@seqnames == 
+                                           as.character(queryLine@seqnames) & 
+                                           exonAnnotation@strand == 
+                                           queryLine@strand)]
+  
+  queryLine2 <- queryLine
+  if(as.logical(queryLine2@strand == '-')){
+    queryLine2@ranges@width  = as.integer(1)
   }else{
-    #get distance to from query point to all exon ends (3' exon distance)
-    to3prime <- query.start - exonAnnotation.subset$end[which(exonAnnotation.subset$exon_number > 1)]
-
-    #get gene and exon id of nearest exon
-    ind3prime <- which.min(to3prime[to3prime > 0])
-
-    if(length(ind3prime) == 0){
-
-      gene3=NA
-      exon3=NA
-
-    } else {
-
-      gene3 <- exonAnnotation.subset$gene_id[which(exonAnnotation.subset$exon_number > 1)][which(to3prime >0)[ind3prime]]
-      exon3 <- exonAnnotation.subset$exon_id[which(exonAnnotation.subset$exon_number > 1)][which(to3prime >0)[ind3prime]]
-
-    }
-
-    #get minimum distance
-    if(all(to3prime <= 0)){
-      to3prime <- -1
-    }else{
-      to3prime <- min(to3prime[to3prime > 0])
-    }
-    #get distance to from query point to all exon starts (5' exon distance)
-    to5prime <- exonAnnotation.subset$start - query.start
-
-    #get gene and exon id of nearest exon
-    ind5prime <- which.min(to5prime[to5prime > 0])
-
-    if(length(ind5prime) == 0){
-
-      gene5=NA
-      exon5=NA
-
-    } else {
-
-      gene5 <- exonAnnotation.subset$gene_id[which(to5prime >0)[ind5prime]]
-      exon5 <- exonAnnotation.subset$exon_id[which(to5prime >0)[ind5prime]]
-
-    }
-    #get minimum distance
-    if(all(to5prime <= 0)){
-      to5prime <- -1
-    }else{
-      to5prime <- min(to5prime[to5prime > 0])
-    }
+    end <- queryLine2@ranges@width - 1 + queryLine2@ranges@start
+    queryLine2@ranges@width  = as.integer(1)
+    queryLine2@ranges@start = as.integer(end)
   }
-
-  #check if the 3' and 5' exons are from the same gene
-  #(i.e. if the co-ordinate is intronic)
-  sameGene <- gene3==gene5
-  return(c(to3prime,to5prime, sameGene, exon3, exon5))
+  
+  # follow to 5'
+  f <- follow(queryLine2, exonAnnotation.subset)
+  gene5 <- exonAnnotation.subset[f]@elementMetadata$gene_id
+  exon5 <- exonAnnotation.subset[f]@elementMetadata$exon_id
+  to5prime <- distance(queryLine2,exonAnnotation.subset[f]) + 1
+  
+  # preceed to 3'
+  p <- precede(queryLine2, exonAnnotation.subset)
+  gene3 <- exonAnnotation.subset[p]@elementMetadata$gene_id
+  exon3 <- exonAnnotation.subset[p]@elementMetadata$exon_id
+  to3prime <- distance(queryLine2,exonAnnotation.subset[p]) + 1
+  
+  sameGene <- gene3 == gene5
+  
+  queryLine@elementMetadata$to_3prime <- to3prime
+  queryLine@elementMetadata$to_5prime <- to5prime
+  queryLine@elementMetadata$same_gene <- sameGene
+  queryLine@elementMetadata$exon_3prime <- exon3
+  queryLine@elementMetadata$exon_5prime <- exon5
+  
+  return(queryLine)
 }

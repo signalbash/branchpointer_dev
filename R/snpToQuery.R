@@ -7,13 +7,14 @@
 #' @return formatted SNP query data.frame
 #' @export
 #' @import biomaRt
+#' @import GenomicRanges
 #' @importFrom stringr str_split
 #' @examples
-#' mart <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
-#' query <- snpToQuery("rs17000647", mart)
+#' mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
+#' query <- snpToQuery("rs17000647", mart.snp)
 #' @author Beth Signal
 
-snpToQuery <- function(refSNP, mart.snp) {
+snpToQuery <- function(refSNP, mart.snp){
   snpInfo <- biomaRt::getBM(attributes = c("refsnp_id",'refsnp_source', "chr_name",
                                    "chrom_start", "allele"),
                     filters = "snp_filter", values = refSNP, mart = mart.snp)
@@ -38,33 +39,40 @@ snpToQuery <- function(refSNP, mart.snp) {
     snpInfo <- snpInfo.remade
   }
 
-  snpInfoQuery = data.frame(
-    id = snp_info$refsnp_id, chromosome = paste0("chr",snpInfo$chr_name),
-    chrom_start = snpInfo$chrom_start, strand = 2,
-    ref_allele = str_sub(snpInfo$allele,1,1),
-    alt_allele = str_sub(snpInfo$allele,3,3)
-  )
-
+  
+  
+  queryGRanges <- GRanges(seqnames=Rle(paste0("chr",snpInfo$chr_name)),
+                          ranges=IRanges(start=snpInfo$chrom_start, width=1),
+                          strand="*",
+                          id=snpInfo$refsnp_id,
+                          ref_allele=stringr::str_sub(snpInfo$allele,1,1),
+                          alt_allele=stringr::str_sub(snpInfo$allele,3,3))
 
   #check for unstranded queries & replace with positive & negative
-  unstranded <- which(snpInfoQuery$strand != "+" | snpInfoQuery$strand !="-")
+  unstranded <- which(queryGRanges@strand == "*")
   if(length(unstranded)>0){
-    query.pos <- snpInfoQuery[unstranded,]
-    query.pos$id <- paste0(query.pos$id, ".pos")
-    query.pos$strand <- "+"
-    query.neg <- snpInfoQuery[unstranded,]
-    query.neg$id <- paste0(query.neg$id, ".neg")
-    query.neg$strand <- "-"
-    snpInfoQuery <- rbind(snpInfoQuery[-unstranded,], query.pos, query.neg)
-  }
+    queryGRanges.pos <- queryGRanges[unstranded]
+    queryGRanges.pos@elementMetadata$id <- 
+      paste0(queryGRanges.pos@elementMetadata$id, "_pos")
+    queryGRanges.pos@strand[1:length(unstranded)] <- "+"
+    
+    queryGRanges.neg <- queryGRanges[unstranded]
+    queryGRanges.neg@elementMetadata$id <- 
+      paste0(queryGRanges.neg@elementMetadata$id, "_neg")
+    queryGRanges.neg@strand[1:length(unstranded)] <- "-"
+    
+    queryGRanges <- do.call("c", list(queryGRanges[-unstranded],
+                                      queryGRanges.pos,
+                                      queryGRanges.neg))
+    }
 
   #check for duplicated query ids
-  if(any(duplicated(snpInfoQuery$id))){
-    message(paste0(length(which(duplicated(snpInfoQuery$id)))," query ids are not unique"))
+  if(any(duplicated(queryGRanges@elementMetadata$id))){
+    message(paste0(length(which(duplicated(queryGRanges@elementMetadata$id)))," query ids are not unique"))
     message("Check output for new names or rename")
-    snpInfoQuery$id <- make.names(snpInfoQuery$id, unique=TRUE)
+    queryGRanges@elementMetadata$id <- make.names(queryGRanges@elementMetadata$id, unique=TRUE)
   }
 
-  return(snpInfoQuery)
+  return(queryGRanges)
 
 }

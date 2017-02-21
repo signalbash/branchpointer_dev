@@ -48,7 +48,9 @@ gtfToExons <- function(gtf){
   }
 
   exons <- gtf.rtrack
-  exons@elementMetadata[c(1,3,4,7:10,13:19)] <- NULL
+  exons@elementMetadata <- exons@elementMetadata[,c("gene_id","gene_type",
+                                                    "transcript_id","transcript_type",
+                                                    "exon_id","exon_number")]
   
   return(exons)
 }

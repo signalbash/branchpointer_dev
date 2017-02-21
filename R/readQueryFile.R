@@ -10,59 +10,46 @@
 #' @return data.frame with formatted query
 #' @export
 #' @import data.table
+#' @import GenomicRanges
 #' @examples
-#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,query_type = "SNP")
+#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(querySNP,queryType = "SNP")
 #'
-#' query_snp <- system.file("extdata","intron_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,query_type = "region")
+#' queryIntron <- system.file("extdata","intron_example.txt", package = "branchpointer")
+#' query <- readQueryFile(queryIntron,queryType = "region")
 #' @author Beth Signal
 
 readQueryFile <- function(queryFile, queryType){
 
   if(missing(queryType)){
-
-    queryTest <- fread(
+    queryTest <- data.table::fread(
       queryFile,header = TRUE,
-      nrows=1
-      )
+      nrows=1)
 
     if(ncol(queryTest) == 5){
-
-      query_type <- "region"
+      queryType <- "region"
       message("first line of file has 5 columns")
       message("using query_type = \"region\"")
-
     }else if(ncol(queryTest) == 6){
-
-      query_type <- "SNP"
+      queryType <- "SNP"
       message("first line of file has 6 columns")
       message("using query_type = \"SNP\"")
-
     }else{
-
       stop("please specify query_type and provide correctly formatted file")
-
     }
-
   }
 
-  if (!(query_type %in% c("SNP", "region"))) {
-
+  if (!(queryType %in% c("SNP", "region"))) {
     message("please specify query_type as \"region\" or \"SNP\"")
-
   }else{
-
-    if (query_type == "SNP") {
-
-      query <- fread(
+    if (queryType == "SNP") {
+      query <- data.table::fread(
         queryFile,header = TRUE,
         colClasses = c(
           "character", "character", "numeric",
           "character", "character", "character"
-        )
+        ), data.table=FALSE
       )
-      query <- as.data.frame(query)
       colnames(query)[1:6] <-
         c("id", "chromosome","chrom_start","strand","ref_allele", "alt_allele")
 
@@ -73,7 +60,6 @@ readQueryFile <- function(queryFile, queryType){
       #check for unstranded queries & replace with positive & negative
       unstranded <- which(query$strand != "+" | query$strand != "-")
       if (length(unstranded) > 0) {
-
         query.pos <- query[unstranded,]
         query.pos$id <- paste0(query.pos$id, "_pos")
         query.pos$strand <- "+"
@@ -81,35 +67,37 @@ readQueryFile <- function(queryFile, queryType){
         query.neg$id <- paste0(query.neg$id, "_neg")
         query.neg$strand <- "-"
         query <- rbind(query[-unstranded,], query.pos,query.neg)
-
-      }
-
+        }
+      
+      queryGRanges <- GRanges(seqnames=Rle(query$chromosome),
+                              ranges=IRanges(start=query$chrom_start, width=1),
+                              strand=query$strand,
+                              id=query$id,
+                              ref_allele=query$ref_allele,
+                              alt_allele=query$alt_allele)
     }else if (queryType == "region") {
-
-      query <- fread(
+      query <- data.table::fread(
         queryFile, header = TRUE,colClasses = c(
           "character","character","numeric","numeric","character"
-        )
-      )
-      query <- as.data.frame(query)
+        ), data.table=FALSE)
       colnames(query) <-
         c("id","chromosome","chrom_start","chrom_end","strand")
-
+      
+      queryGRanges <- GRanges(seqnames=Rle(query$chromosome),
+                              ranges=IRanges(start=query$chrom_start, 
+                                             end=query$chrom_end),
+                              strand=query$strand,
+                              id=query$id)
     }
 
     #check for duplicated query ids
     if (any(duplicated(query$id))) {
-
       message(paste0(length(which(
         duplicated(query$id)
       ))," query ids are not unique"))
       message("Check output for new names or rename")
       query$id = make.names(query$id, unique = TRUE)
-
     }
-
-    return(query)
-
+    return(queryGRanges)
   }
-
 }

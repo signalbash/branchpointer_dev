@@ -26,21 +26,15 @@ makeRegions <- function(id, idType, exons) {
   noType <- missing(idType)
 
   if(!noType){
-
     noType <-  noType | !(idType %in% validTypes)
-
   }
 
 
   if (!noType) {
-
     x <- which(colnames(exons) == idType)
     y <- grep(id, exons[,x])
-
   }else{
-
     y <- vector()
-
   }
 
   #go through possible columns if no matches found
