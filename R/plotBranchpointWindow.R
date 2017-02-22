@@ -1,36 +1,135 @@
+#' Plots transcript structures
+#'
+#' Plots transcript structures
+#' @param exonID id of the exon to plot
+#' @param exons Granges containing exon co-ordinates.
+#' @param keepTranscripts which transcripts to plot (\code{"overlapping"} or \code{"withExon"})
+#' \code{"overlapping"} will plot all transcripts overlapping the exon, 
+#' whereas \code{"withExon"} will plot all transcripts containing the exon.
+#' @return ggplot2 plot transcript structures
+#' @import ggplot2
+#' @examples
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
+#' package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
+#' plotStructure(exonID= "ENSE00001184784.4", exons)
+#' @author Beth Signal
+plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
+  
+  geneID <- exons@elementMetadata$gene_id[match(exonID, exons@elementMetadata$exon_id)]
+  
+  exonsForPlot <- exons[exons@elementMetadata$gene_id == geneID]  
+  
+  exonsForPlot <- cbind(chromosome=as.character(exonsForPlot@seqnames), 
+                        as.data.frame(exonsForPlot@ranges),
+                        strand=as.character(exonsForPlot@strand),
+                        as.data.frame(exonsForPlot@elementMetadata))
+  
+  exonsForPlot$start <- as.numeric(exonsForPlot$start)
+  exonsForPlot$end <- as.numeric(exonsForPlot$end)
+  
+  transcriptsForPlot <- exonsForPlot
+  transcriptsForPlot$transcript_id <- transcriptsForPlot$gene_id
+  exonsForPlot <- rbind(exonsForPlot, transcriptsForPlot)  
+  
+  exonsForPlot$length <- exonsForPlot$end - exonsForPlot$start
+  
+  
+  if (exonsForPlot$strand[1] == "+") {
+    BPexons = which(exonsForPlot$start ==
+                      exonsForPlot$start[which(exonsForPlot$exon_id ==
+                                                 exonID)][1])
+  }else{
+    BPexons <- which(exonsForPlot$end ==
+                       exonsForPlot$end[which(exonsForPlot$exon_id ==
+                                                exonID)][1])
+  }
+  
+  exonsForPlot$SNP_exon <- 0
+  exonsForPlot$SNP_exon[BPexons] <- 1
+  exonsForPlot$SNP_exon[exonsForPlot$transcript_id == exonsForPlot$gene_id[1]] <- 2
+  
+  #make smaller data.frame for plotting connecting lines
+  exonsForPlotLines <- exonsForPlot[!duplicated(exonsForPlot$transcript_id),]
+  
+  exonsForPlotLines <- aggregate(start ~ transcript_id, exonsForPlot, max)
+  exonsForPlotLines <- cbind(exonsForPlotLines, 
+                             aggregate(end ~ transcript_id, exonsForPlot, min)[,2],
+                             aggregate(end ~ transcript_id, exonsForPlot, max)[,2],
+                             aggregate(start ~ transcript_id, exonsForPlot, min)[,2])
+  
+  colnames(exonsForPlotLines) <- c("transcript_id", "maxs","mine","maxe","mins")
+  
+  #only plot exonsForPlot overlapping the query
+  if(keepTranscripts == "overlapping"){
+    keep <- which((exonsForPlotLines$maxe >= max(exonsForPlot$end[exonsForPlot$SNP_exon == 1])) &
+                    (exonsForPlotLines$mins <= min(exonsForPlot$start[exonsForPlot$SNP_exon == 1])))
+    exonsForPlotLines <- exonsForPlotLines[keep,]
+    exonsForPlot <- exonsForPlot[exonsForPlot$transcript_id %in% exonsForPlotLines$transcript_id,]
+  }else if(keepTranscripts == "withExon"){
+    keep <- which(exonsForPlotLines$transcript_id %in% exonsForPlot$transcript_id[exonsForPlot$SNP_exon == 1])
+    exonsForPlotLines <- exonsForPlotLines[keep,]
+    exonsForPlot <- exonsForPlot[exonsForPlot$transcript_id %in% exonsForPlotLines$transcript_id,]
+  }
+  
+  exonsForPlot$transcript_id_num <- as.numeric(as.factor(exonsForPlot$transcript_id)) * -1
+  exonsForPlotLines$transcript_id_num <- as.numeric(as.factor(exonsForPlotLines$transcript_id)) * -1
+  
+  if (exonsForPlot$strand[1] == "+") {
+    exonsForPlotLines$transcript_id <- paste0(exonsForPlotLines$transcript_id, " (+)")
+  }else{
+    exonsForPlotLines$transcript_id <- paste0(exonsForPlotLines$transcript_id, " (-)")
+  }
+  exonsForPlotLines$SNP_exon <- 0
+  
+  plot.structure <- ggplot() +
+    geom_segment(data = exonsForPlotLines, aes_string(x = 'mins',xend = 'maxe', y = 'transcript_id_num',
+                                                      yend = 'transcript_id_num')) +
+    geom_rect(data=exonsForPlot, aes_string(xmin = 'start', xmax = 'start + length',
+                                            ymin = 'transcript_id_num - 0.4',
+                                            ymax = 'transcript_id_num + 0.4', fill = 'factor(SNP_exon)')) +
+    scale_fill_manual(values = c("black","blue","grey60")) +
+    scale_y_continuous(breaks = seq(-1, min(exonsForPlotLines$transcript_id_num),-1),
+                       labels = exonsForPlotLines$transcript_id[
+                         match(seq(-1, min(exonsForPlotLines$transcript_id_num),-1),
+                               exonsForPlotLines$transcript_id_num)]) +
+    theme(panel.background = element_rect(fill = "white"), axis.text.x = element_blank(),
+          axis.title.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.title.y = element_blank(), axis.ticks.y = element_blank(),
+          legend.position = "none")
+  
+  return(plot.structure)
+}
+
 #' Plots branchpointer predictions
 #'
 #' Plots branchpointer predictions
 #' @param queryName query id used to identify the SNP or region
-#' @param queryAttributes attribute data.frame
-#' @param predictions prediction of branchpoint probabilities for each site
+#' @param predictions Granges object generated by predictBranchpoints()
 #' @param probabilityCutoff probability score cutoff value for displaying U2 binding energy
 #' @param plotStructure plot structures for gene and 3' exon containing and skipping isoforms
 #' @param plotMutated plot alternative sequence predicitons alongside reference sequence predictions
-#' @param exons data.frame containing exon co-ordinates.
+#' @param exons Granges containing exon co-ordinates.
 #' Should be produced by gtfToExons()
 #' @return ggplot2 plot with branchpoint features in the specified intronic region
 #' @export
 #' @import ggplot2
-#' @import ggbio
 #' @importFrom cowplot ggdraw
 #' @importFrom cowplot draw_plot
 #' @examples
-#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
 #' package = "branchpointer")
-#' exons <- readExonAnnotation(small_exons)
+#' exons <- readExonAnnotation(smallExons)
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
-#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,query_type = "SNP")
-#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
-#' query_attributes <- getBranchpointSequence(query,
-#' query_type = "SNP",
-#' useBSgenome = TRUE,
+#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(querySNP,query_type = "SNP")
+#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
+#' predictions <- predictBranchpoints(query,
+#' queryType = "SNP",
 #' BSgenome = genome)
-#' branchpoint_predictions <- predictBranchpoints(query_attributes)
-#' plotBranchpointWindow(query$id[1],  branchpoint_predictions,
-#' query_attributes, plot_mutated = TRUE, exons = exons)
+#' plotBranchpointWindow(query@elementmetadata$id[1], predictions,
+#' plot_mutated = TRUE, exons = exons)
 #' @author Beth Signal
 
 plotBranchpointWindow <- function(queryName,
@@ -136,79 +235,42 @@ plotBranchpointWindow <- function(queryName,
       scale_x_continuous(limits = c(-45,-17))
 
     ######Get reference vs. alt sequence for 0-50 window#####
+    
+    seqSplit.ref <- unlist(stringr::str_split(predictions.snp.ref$seq[1], ""))
+    seqSplit.alt <- unlist(stringr::str_split(predictions.snp.alt$seq[1], ""))
+    
+    wholeSeq <- data.frame(nt = c(seqSplit.ref, seqSplit.alt),
+                           pos = rep(seq(-50,-1,1),2),
+                           set = rep(c("REF","ALT"), each =50))
+    mutPosition <- wholeSeq$pos[which(wholeSeq$nt[wholeSeq$set == "REF"] !=
+                                    wholeSeq$nt[wholeSeq$set == "ALT"])]
 
-  #   seq <- queryAttributes[which(grepl(queryName, queryAttributes$id) &
-  #                                    grepl("REF",queryAttributes$id))[1],]$seq
-  #   pos <- queryAttributes[which(grepl(queryName, queryAttributes$id) &
-  #                                    grepl("REF",queryAttributes$id))[1],]$to_3prime
-  #   seq.ref <- unlist(stringr::str_split(stringr::str_sub(seq,251 + (pos - 50),250 + pos),""))
-  # 
-  #   seq <- queryAttributes[which(grepl(queryName, queryAttributes$id) &
-  #                                    grepl("ALT",queryAttributes$id))[1],]$seq
-  #   pos <- queryAttributes[which(grepl(queryName, queryAttributes$id) &
-  #                                    grepl("ALT",queryAttributes$id))[1],]$to_3prime
-  #   seq.alt <- unlist(stringr::str_split(stringr::str_sub(seq,251 + (pos - 50),250 + pos),""))
-  # 
-  #   wholeSeq <- data.frame(nt = c(seq_1, seq_2),
-  #                          pos = rep(seq(-50,-1,1),2),
-  #                          set = rep(c("REF","ALT"), each =50))
-  #   mutPosition <- wholeSeq$pos[which(wholeSeq$nt[wholeSeq$set == "REF"] !=
-  #                                   wholeSeq$nt[wholeSeq$set == "ALT"])]
-  # 
-  #   plot.seqComparison <- ggplot(wholeSeq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
-  #     geom_rect(xmin = mutPosition - 0.5,xmax = mutPosition + 0.5, ymin = 0.5, ymax = 0.5 + 2,
-  #               col = NA, fill = "grey90") +
-  #     geom_text(size = 4, family = "Courier") +
-  #     scale_color_manual(values = mercer_nt_cols) +
-  #     theme(legend.position = "none",
-  #           axis.title.y = element_text(colour ="white"), axis.ticks.y = element_line(color = "white"),
-  #           panel.background = element_rect(fill = "white"), axis.text.x = element_blank(),
-  #           axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
-  #     scale_x_continuous(limits = c(-50,-1)) +
-  #     scale_y_discrete(labels = c("Alternative", "Reference")) +
-  #     geom_rect(xmin = -44.5,xmax = -17.5, ymin = 0.5, ymax = 0.5 + 2, fill = NA, col ="black")
-  # 
+    plot.seqComparison <- ggplot(wholeSeq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
+      geom_rect(xmin = mutPosition - 0.5,xmax = mutPosition + 0.5, ymin = 0.5, ymax = 0.5 + 2,
+                col = NA, fill = "grey90") +
+      geom_text(size = 4, family = "Courier") +
+      scale_color_manual(values = mercer_nt_cols) +
+      theme(legend.position = "none",
+            axis.title.y = element_text(colour ="white"), axis.ticks.y = element_line(color = "white"),
+            panel.background = element_rect(fill = "white"), axis.text.x = element_blank(),
+            axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+      scale_x_continuous(limits = c(-50,-1)) +
+      scale_y_discrete(labels = c("Alternative", "Reference")) +
+      geom_rect(xmin = -44.5,xmax = -17.5, ymin = 0.5, ymax = 0.5 + 2, fill = NA, col ="black")
+
   }
 
   #plot gene/transcript structure
   if (plotStructure == TRUE) {
-    
-    exonInd <- which(exons@elementMetadata$exon_id == predictions.snp@elementMetadata$exon_3prime[1])
-    geneID <- exons@elementMetadata$gene_id[exonInd][1]
-    
-    exonsForPlot <- exons[exons@elementMetadata$gene_id == geneID]
-    exonsForPlot@elementMetadata$tested_exon <- "X"
-    
-    
-    if(as.logical(exonsForPlot@strand[1] == "+")){
-      exon5primeLoc <- exons@ranges@start[exonInd][1]
-      exonsForPlot@elementMetadata$tested_exon[which(exonsForPlot@ranges@start == exon5primeLoc)] <- "Y"
-    }else{
-      exon5primeLoc <- exons@ranges@start[exonInd][1] + exons@ranges@width[exonInd][1] - 1
-      exonsForPlot@elementMetadata$tested_exon[which((exonsForPlot@ranges@start + exonsForPlot@ranges@width - 1) == exon5primeLoc)] <- "Y"
-      
-    }
-     
-    followTranscripts <- unique(exonsForPlot@elementMetadata$transcript_id[which(!is.na(follow(exonsForPlot,exons[exonInd][1])))])
-    precedeTranscripts <- unique(exonsForPlot@elementMetadata$transcript_id[which(!is.na(precede(exonsForPlot,exons[exonInd][1])))])
-    
-    keepTranscripts <- followTranscripts[followTranscripts %in% precedeTranscripts]
-    exonsForPlot <- exonsForPlot[exonsForPlot@elementMetadata$transcript_id %in% keepTranscripts]
-    
-    plot.structure <-  ggplot() + ggbio::geom_alignment(exonsForPlot, aes(fill=tested_exon)) + 
-      scale_fill_manual(values = c("black","grey60")) +
-      theme(panel.background = element_rect(fill = "white"), axis.text.x = element_blank(),
-            axis.title.x = element_blank(), axis.ticks.x = element_blank(),
-            axis.title.y = element_blank(), axis.ticks.y = element_blank(),
-            legend.position = "none")
-    
+    exonID <- predictions.snp@elementMetadata$exon_3prime[1]
+    plot.structure <- plotStructure(exonID, exons)
   }
     
   theme_set(theme_gray())
   if (plotStructure == TRUE & plotMutated == TRUE) {
     ggdraw() +
       draw_plot(plot.structure,0,0.775,1,0.225) + 
-      #draw_plot(plot.seq.comparison,0,0.675,1,0.1) +
+      draw_plot(plot.seq.comparison,0,0.675,1,0.1) +
       draw_plot(plot.prob.ref,0,.275,0.5,.40) + draw_plot(plot.seq.ref,0,.2,0.5,.075) + draw_plot(plot.U2.ref,0,0,0.5,.2) +
       draw_plot(plot.prob.alt,0.5,.275,0.5,.40) + draw_plot(plot.seq.alt,0.5,.2,0.5,.075) + draw_plot(plot.U2.alt,0.5,0,0.5,.2)
 
@@ -221,7 +283,7 @@ plotBranchpointWindow <- function(queryName,
       draw_plot(plot.prob.ref,0,.325,1,.45) + draw_plot(plot.seq.ref,0,.25,1,.075) + draw_plot(plot.U2.ref,0,0,1,.25)
   }else if (plotStructure == FALSE & plotMutated == TRUE) {
     ggdraw() +
-      #draw_plot(plot.seq.comparison,0,0.9,1,0.1) +
+      draw_plot(plot.seq.comparison,0,0.9,1,0.1) +
       draw_plot(plot.prob.ref,0,.4,0.5,.5) + draw_plot(plot.seq.ref,0,.3,0.5,.1) + draw_plot(plot.U2.ref,0,0,0.5,.3) +
       draw_plot(plot.prob.alt,0.5,.4,0.5,.5) + draw_plot(plot.seq.alt,0.5,.3,0.5,.1) + draw_plot(plot.U2.alt,0.5,0,0.5,.3)
   }
