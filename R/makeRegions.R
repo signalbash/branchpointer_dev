@@ -7,7 +7,7 @@
 #' \code{"transcript_id"}, or \code{"exon_id"})
 #' @param exons data.frame containing exon co-ordinates.
 #' Should be produced by gtfToExons()
-#' @return data.frame with frormatted query
+#' @return Granges with formatted query
 #' @export
 #' @examples
 #' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",

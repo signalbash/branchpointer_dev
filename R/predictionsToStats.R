@@ -11,7 +11,7 @@
 #' @param probabilityChange Minimum probability score change
 #' required to call a branchpoint site as deleted or created by
 #' a SNP (default = \code{0.2})
-#' @return data.frame with summarised branchpoint changes
+#' @return GRanges with summarised branchpoint changes
 #' occuring within the intron due to a SNP.
 #' @export
 #' @import GenomicRanges
