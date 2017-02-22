@@ -9,7 +9,6 @@
 #' @param queryType type of query file (\code{"SNP"} or \code{"region"})
 #' @return data.frame with formatted query
 #' @export
-#' @import data.table
 #' @import GenomicRanges
 #' @examples
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
@@ -22,7 +21,7 @@
 readQueryFile <- function(queryFile, queryType){
 
   if(missing(queryType)){
-    queryTest <- data.table::fread(
+    queryTest <- read.table(
       queryFile,header = TRUE,
       nrows=1)
 
@@ -43,13 +42,12 @@ readQueryFile <- function(queryFile, queryType){
     message("please specify query_type as \"region\" or \"SNP\"")
   }else{
     if (queryType == "SNP") {
-      query <- data.table::fread(
+      query <- read.table(
         queryFile,header = TRUE,
         colClasses = c(
           "character", "character", "numeric",
           "character", "character", "character"
-        ), data.table=FALSE
-      )
+        ))
       colnames(query)[1:6] <-
         c("id", "chromosome","chrom_start","strand","ref_allele", "alt_allele")
 
@@ -76,10 +74,10 @@ readQueryFile <- function(queryFile, queryType){
                               ref_allele=query$ref_allele,
                               alt_allele=query$alt_allele)
     }else if (queryType == "region") {
-      query <- data.table::fread(
+      query <- read.table(
         queryFile, header = TRUE,colClasses = c(
           "character","character","numeric","numeric","character"
-        ), data.table=FALSE)
+        ))
       colnames(query) <-
         c("id","chromosome","chrom_start","chrom_end","strand")
       
