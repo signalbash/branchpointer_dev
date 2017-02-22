@@ -52,11 +52,11 @@ plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
   #make smaller data.frame for plotting connecting lines
   exonsForPlotLines <- exonsForPlot[!duplicated(exonsForPlot$transcript_id),]
   
-  exonsForPlotLines <- aggregate(start ~ transcript_id, exonsForPlot, max)
+  exonsForPlotLines <- stats::aggregate(start ~ transcript_id, exonsForPlot, max)
   exonsForPlotLines <- cbind(exonsForPlotLines, 
-                             aggregate(end ~ transcript_id, exonsForPlot, min)[,2],
-                             aggregate(end ~ transcript_id, exonsForPlot, max)[,2],
-                             aggregate(start ~ transcript_id, exonsForPlot, min)[,2])
+                             stats::aggregate(end ~ transcript_id, exonsForPlot, min)[,2],
+                             stats::aggregate(end ~ transcript_id, exonsForPlot, max)[,2],
+                             stats::aggregate(start ~ transcript_id, exonsForPlot, min)[,2])
   
   colnames(exonsForPlotLines) <- c("transcript_id", "maxs","mine","maxe","mins")
   
@@ -245,7 +245,7 @@ plotBranchpointWindow <- function(queryName,
     mutPosition <- wholeSeq$pos[which(wholeSeq$nt[wholeSeq$set == "REF"] !=
                                     wholeSeq$nt[wholeSeq$set == "ALT"])]
 
-    plot.seqComparison <- ggplot(wholeSeq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
+    plot.seq.comparison <- ggplot(wholeSeq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
       geom_rect(xmin = mutPosition - 0.5,xmax = mutPosition + 0.5, ymin = 0.5, ymax = 0.5 + 2,
                 col = NA, fill = "grey90") +
       geom_text(size = 4, family = "Courier") +
