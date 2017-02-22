@@ -400,7 +400,6 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   if (useParallel) {
     cluster <- parallel::makeCluster(cores)
     canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
-    queryAttributes <- cbind(queryAttributes, seq = df$seq)
     pyra <-
       parallel::parApply(cluster,queryAttributes, 1, getPPT)
     parallel::stopCluster(cluster)
@@ -528,7 +527,7 @@ predictBranchpoints <- function(query, uniqueId = "test",
     dfAdd <- as.data.frame(matrix(data=0,nrow=nrow(queryAttributes.forModel),
                                    ncol=length(newColNames)))
     colnames(dfAdd) <- newColNames
-    queryAttributes.forModel <- cbind(queryAttributes.forModel, df_add)
+    queryAttributes.forModel <- cbind(queryAttributes.forModel, dfAdd)
     queryAttributes.forModel <- queryAttributes.forModel[,match(names(preProcValues$mean),
                                                                   colnames(queryAttributes.forModel))]
   }
