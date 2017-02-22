@@ -2,18 +2,15 @@
 #'
 #' Converts a GTF annotation to exon locations
 #' @param gtf file containing the gtf annotation.
-#' @return exon annotation data.frame
+#' @return exon annotation GRanges
 #' @export
 #' @import stringr
-#' @import rtracklayer
+#' @import GenomicRanges
 #' @importFrom utils write.table
-#' @importFrom GenomicRanges seqnames
-#' @importFrom GenomicRanges ranges
-#' @importFrom GenomicRanges strand
 #' @examples
-#' small_gtf <- system.file("extdata","gencode.v24.annotation.small.gtf",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
-#' exons <- gtfToExons(small_gtf)
+#' exons <- gtfToExons(smallExons)
 #' @author Beth Signal
 
 gtfToExons <- function(gtf){
