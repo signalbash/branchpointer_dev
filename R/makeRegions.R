@@ -10,9 +10,9 @@
 #' @return Granges with formatted query
 #' @export
 #' @examples
-#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
-#' exons <- readExonAnnotation(small_exons)
+#' exons <- readExonAnnotation(smallExons)
 #' windowquery <- makeRegions("ENSG00000139618", "gene_id", exons)
 #' windowquery <- makeRegions("ENST00000357654", "transcript_id", exons)
 #' windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
@@ -31,8 +31,8 @@ makeRegions <- function(id, idType, exons) {
 
 
   if (!noType) {
-    x <- which(colnames(exons) == idType)
-    y <- grep(id, exons[,x])
+    x <- which(colnames(exons@elementMetadata) == idType)
+    y <- grep(id, exons@elementMetadata[,x])
   }else{
     y <- vector()
   }
@@ -41,22 +41,22 @@ makeRegions <- function(id, idType, exons) {
   if (length(y) == 0 | noType) {
 
     idType <- validTypes[1]
-    x <- which(colnames(exons) == idType)
-    y <- grep(id, exons[,x])
+    x <- which(colnames(exons@elementMetadata) == idType)
+    y <- y <- grep(id, exons@elementMetadata[,x])
 
     if (length(y) == 0) {
 
       idType <- validTypes[2]
-      x <- which(colnames(exons) == idType)
-      y <- grep(id, exons[,x])
+      x <- which(colnames(exons@elementMetadata) == idType)
+      y <- y <- grep(id, exons@elementMetadata[,x])
 
     }
 
     if (length(y) == 0) {
 
       idType <- validTypes[3]
-      x <- which(colnames(exons) == idType)
-      y <- grep(id, exons[,x])
+      x <- which(colnames(exons@elementMetadata) == idType)
+      y <- y <- grep(id, exons@elementMetadata[,x])
 
     }
 
@@ -70,45 +70,27 @@ makeRegions <- function(id, idType, exons) {
 
   #use a subset of the exon annotation for faster processing
   if (idType != "gene_id") {
-
-    gene_id <- exons$gene_id[y[1]]
-    y2 <- which(!is.na(match(exons$gene_id,gene_id)))
-
+    gene_id <- exons@elementMetadata$gene_id[y[1]]
+    y2 <- which(!is.na(match(exons@elementMetadata$gene_id,gene_id)))
   }else{
-
     y2 <- y
-
   }
 
-  exons.subset <- exons[y,]
-
+  exons.subset <- exons[y]
+  
   #by definition first exons shouldn' have branchpoints
-  keep <- which(exons.subset$exon_number > 1)
+  keep <- which(exons.subset@elementMetadata$exon_number > 1)
 
-  if (exons.subset$strand[1] == "+") {
-
-    windowstarts <- (exons.subset$start - 50)[keep]
-    windowends <- (exons.subset$start - 10)[keep]
-
+  if (as.logical(exons.subset@strand[1] == "+")) {
+    windowStarts <- (exons.subset@ranges@start - 50)[keep]
   }else{
-
-    windowStarts <- (exons.subset$end + 10)[keep]
-    windowEnds <- (exons.subset$end + 50)[keep]
-
+    windowStarts <- (exons.subset@ranges@start + exons.subset@ranges@width -1 + 10)[keep]
   }
 
-  windowDF <- data.frame(
-    id = exons.subset$exon_id[keep],
-    chromosome = exons.subset$chromosome[keep],
-    chrom_start = window_Starts,
-    chrom_end = windowEnds,
-    strand = exons.subset$strand[keep]
-  )
+  window <- exons.subset[keep]
+  window@ranges@start <- as.integer(windowStarts)
+  window@ranges@width[1:length(windowStarts)] <- as.integer(41)
 
-  windowDF <- windowDF[!duplicated(windowDF$id),]
-
-  exons.subset <- exons[y2,]
-
-  return(getQueryLoc(windowDF,queryType = "region",exons = exons.subset))
+  return(getQueryLoc(window,queryType = "region",exons = exons.subset))
 
 }
