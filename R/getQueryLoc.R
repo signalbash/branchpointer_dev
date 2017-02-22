@@ -1,8 +1,111 @@
+#' Convert exon annotation GRanges to intron locations
+#'
+#' Converts exon annotation to intron locations overlapping the branchpoint region
+#' for exculsion of non-branchpoint region SNPs
+#' Returns a character vector of chromosome locations
+#' @param exons data.frame containing exon co-ordinates.
+#' Should be produced by gtfToExons()
+#' @param maxDist Maximum distance from the 3' exon to create the branchpoint region.
+#' @return vector of chromosome names and intronic locations
+#' @examples
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf", package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
+#' introns <- exonsToIntrons(exons, 50)
+#' @author Beth Signal
+
+exonsToIntrons <- function(exons, maxDist = 50){
+  
+  #split exon annotation by strand
+  exons.pos <- exons[exons@strand=="+",]
+  exons.neg <- exons[exons@strand=="-",]
+  
+  #make vectors of all co-ordinates within the branchpoint window
+  intronLocs.p <- unlist(lapply(exons.pos@ranges@start, function(x){(x-maxDist):(x-1)}))
+  intronChroms.p <- rep(exons.pos@seqnames, each=maxDist)
+  intronLocs.n <- unlist(lapply(exons.neg@ranges@start + exons.neg@ranges@width - 1, function(x){(x+1):(x+maxDist)}))
+  intronChroms.n <- rep(exons.neg@seqnames, each=maxDist)
+  
+  introns <- data.frame(chromosome=c(intronChroms.p,intronChroms.n),
+                        chr_start=c(intronLocs.p,intronLocs.n))
+  
+  #format as chrom_1000000
+  chromAndStart <- paste(introns$chromosome, introns$chr_start,sep="_")
+  chromAndStart <- gsub(" ","",chromAndStart)
+  
+  return(chromAndStart)
+}
+
+
+#' Get the closest 3' and 5' exons
+#'
+#' Finds the closest annotated exons from a genomic co-ordinate.
+#' Returns the distance to the 3' exon, distance to the 5' exon,
+#' ids of the 3' and 5' exon,
+#' and if the exons are from the same parent gene
+#' @param queryLine line from a query GenomicRanges
+#' @param exonAnnotation GenomicRanges containing exon co-ordinates.
+#' Should be produced by gtfToExons()
+#' @param queryType type of query. "SNP" or "region"
+#' @return GenomicRanges with distance to the closest 3' and 5' exons,
+#' whether these exons are part of the same gene (i.e is the location intronic),
+#' and the identifiers for the 3' and 5' exons.
+#' @import GenomicRanges
+#' @examples
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
+#' package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
+#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' queryLine <- readQueryFile(querySNP,queryType = "SNP")[1,]
+#' exonsDists <- getExonDists(queryLine, exons, queryType = "SNP")
+#' @author Beth Signal
+
+getExonDists <- function(queryLine, exonAnnotation, queryType){
+  
+  # if using regions, region start will be used for negative strand queries
+  # & region end for positive strand queries
+  
+  #faster when exonAnnotation is filtered
+  exonAnnotation.subset <- exonAnnotation[(exonAnnotation@seqnames == 
+                                             as.character(queryLine@seqnames) & 
+                                             exonAnnotation@strand == 
+                                             queryLine@strand)]
+  
+  queryLine2 <- queryLine
+  if(as.logical(queryLine2@strand == '-')){
+    queryLine2@ranges@width  = as.integer(1)
+  }else{
+    end <- queryLine2@ranges@width - 1 + queryLine2@ranges@start
+    queryLine2@ranges@width  = as.integer(1)
+    queryLine2@ranges@start = as.integer(end)
+  }
+  
+  # follow to 5'
+  f <- follow(queryLine2, exonAnnotation.subset)
+  gene5 <- exonAnnotation.subset[f]@elementMetadata$gene_id
+  exon5 <- exonAnnotation.subset[f]@elementMetadata$exon_id
+  to5prime <- distance(queryLine2,exonAnnotation.subset[f]) + 1
+  
+  # preceed to 3'
+  p <- precede(queryLine2, exonAnnotation.subset)
+  gene3 <- exonAnnotation.subset[p]@elementMetadata$gene_id
+  exon3 <- exonAnnotation.subset[p]@elementMetadata$exon_id
+  to3prime <- distance(queryLine2,exonAnnotation.subset[p]) + 1
+  
+  sameGene <- gene3 == gene5
+  
+  queryLine@elementMetadata$to_3prime <- to3prime
+  queryLine@elementMetadata$to_5prime <- to5prime
+  queryLine@elementMetadata$same_gene <- sameGene
+  queryLine@elementMetadata$exon_3prime <- exon3
+  queryLine@elementMetadata$exon_5prime <- exon5
+  
+  return(queryLine)
+}
+
 #' Find the closest 3' and 5' exons to a branchpointer query
 #'
-#' Finds the closest annotated exons from genomic co-ordinates in a branchpointer query data.frame.
-
-#' @param query branchpointer query data.frame
+#' Finds the closest annotated exons from genomic co-ordinates in a branchpointer query GRanges
+#' @param query branchpointer query GenomicRanges
 #' must have chromosome at position 2, genomic co-ordinate at position 3,
 #' and strand at position 4.
 #' @param queryType type of query file (\code{"SNP"} or \code{"region"})
@@ -13,17 +116,17 @@
 #' @param useParallel use parallelisation to speed up code?
 #' (reccomended for > 500 query entries)
 #' @param cores number of cores to use in parallelisation (default = \code{1})
-#' @return data.frame with the query and its location relative to the 3' and 5' exons
+#' @return GenomicRanges with the query and its location relative to the 3' and 5' exons
 #' @export
 #' @import parallel
 #' @import GenomicRanges
 #' @examples
-#' small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
 #' package = "branchpointer")
-#' exons <- readExonAnnotation(small_exons)
+#' exons <- readExonAnnotation(smallExons)
 #'
-#' query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(query_snp,queryType = "SNP")
+#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' query <- readQueryFile(querySNP,queryType = "SNP")
 #' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 #' @author Beth Signal
 
@@ -148,17 +251,8 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
     end <- (nearestExons@ranges@start + nearestExons@ranges@width - 1)[posStrand]
     nearestExons@ranges@start[posStrand] <- as.integer(end - 26)
     
-    #setting multiple granges values to a single value requires indexing
+    #setting multiple GRanges values to a single value requires indexing
     nearestExons@ranges@width[c(posStrand, negStrand)] <- as.integer(27)
-    
-    # if(useParallel){
-    #   cluster <- makeCluster(cores)
-    #   nearestExons <- parApply(cluster,query,1,getExonDists,exons,queryType)
-    #   stopCluster(cluster)
-    # }else{
-    #   nearestExons <- lapply(nearestExons,getExonDists,exons,queryType)
-    # }
-    # nearestExons <- do.call("c", nearestExons)
     
     }else if(queryType=="SNP"){
 
