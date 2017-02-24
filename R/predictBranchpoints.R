@@ -6,10 +6,7 @@
 #' and fills the remainder of the values with 300.
 #' @param ag Vector of distances to the AG splice site motif.
 #' @return Locations of the first five AG dinucleotides
-#' @examples
-#' sequence <- paste(c("A","T","C","G")[sample(1:4, 501, replace=TRUE)] , collapse="")
-#' AGSeqPositions <- gregexpr("AG",sequence, 252,501)
-#' canonHits <- getCanonical3SS(AGSeqPositions[[1]])
+#' @keywords internal
 #' @author Beth Signal
 
 getCanonical3SS <- function(ag){
@@ -30,9 +27,7 @@ getCanonical3SS <- function(ag){
 #' @param attributesLine line from a query attributes GenomicRanges
 #' @return distance to the start of the longest PPT, and its length
 #' @import plyr
-#' @examples
-#' attributesLine <- c("id", "1000","27", paste(c("A","G",rep(c("C","T"),4))[sample(1:10, 501, replace=TRUE)] , collapse=""))
-#' pyra <- getPPT(attributesLine)
+#' @keywords internal
 #' @author Beth Signal
 
 getPPT <- function(attributesLine){
@@ -189,31 +184,16 @@ getPPT <- function(attributesLine){
 #' @importFrom Biostrings complement
 #' @importFrom Biostrings getSeq
 #' @importFrom BSgenome.Hsapiens.UCSC.hg38 BSgenome.Hsapiens.UCSC.hg38
-#' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
-#' package = "branchpointer")
-#' exons <- readExonAnnotation(smallExons)
-#' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-#'
-#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP")
-#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
-#' queryAttributes <- getBranchpointSequence(query,
-#' queryType = "SNP",
-#' BSgenome = genome)
-#'
-#' query <- makeRegions("ENSE00003541068.1", "exon_id", exons)
-#' queryAttributes <- getBranchpointSequence(query,
-#' queryType = "region",
-#' BSgenome = genome)
-
+#' @importFrom data.table fread
+#' @importClassesFrom data.table data.table
+#' @keywords internal
 #' @author Beth Signal
 
 getBranchpointSequence <- function(query, uniqueId = "test",
                                    queryType,
                                    workingDirectory = ".",
                                    genome = NA,
-                                   bedtoolsLocation,
+                                   bedtoolsLocation = NA,
                                    BSgenome = NULL,
                                    useParallel = FALSE,
                                    cores = 1,
@@ -223,7 +203,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     stop("please specify a genome .fa file for sequence extraction or specify a BSgenome object")
   }
   
-  if(is.na(genome) | missing(bedtoolsLocation)){
+  if((is.na(genome) | is.na(bedtoolsLocation))& is.null(BSgenome)){
     stop("please specify a genome .fa file for sequence extraction and a bedtools binary location")
   }
   
@@ -337,7 +317,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   if (queryType == "SNP") {
     #create mutated sequence
     s.mut <-
-      paste0(substr(query@elementMetadata$seq, 1,250 + (loc)), nt.alt, substr(s, 252 + (loc),528))
+      paste0(substr(query@elementMetadata$seq, 1,250 + (loc)), nt.alt, substr(query@elementMetadata$seq, 252 + (loc),528))
     
     seqs.mut <- vector()
     for (i in 18:44) {
@@ -401,7 +381,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     cluster <- parallel::makeCluster(cores)
     canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
     pyra <-
-      parallel::parApply(cluster,queryAttributes, 1, getPPT)
+      parallel::parApply(cluster,queryAllPoints, 1, getPPT)
     parallel::stopCluster(cluster)
   }else{
     canonHits <- lapply(f, getCanonical3SS)
@@ -446,25 +426,22 @@ getBranchpointSequence <- function(query, uniqueId = "test",
 #' @import parallel
 #' @importFrom stringr str_sub
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
-#' exons <- readExonAnnotation(smallExons)
+#' exons <- gtfToExons(smallExons)
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,query_type = "SNP")
+#' query <- readQueryFile(querySNP,queryType = "SNP")
 #' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
-#' predictions <- predictBranchpoints(query,
-#' queryType = "SNP",
-#' useBSgenome = TRUE,
-#' BSgenome = genome)
+#' predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = genome)
 #' @author Beth Signal
 
 predictBranchpoints <- function(query, uniqueId = "test",
                                      queryType,
                                      workingDirectory = ".",
                                      genome = NA,
-                                     bedtoolsLocation,
+                                     bedtoolsLocation = NA,
                                      BSgenome = NULL,
                                      useParallel = FALSE,
                                      cores = 1,
