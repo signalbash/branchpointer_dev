@@ -20,3 +20,8 @@ UTF8 encoding in vignette to pass build
 
 Version 0.99.6
 depends R>3.4
+
+Version 0.99.7
+Branchpointer now is based upon the GRanges object class.
+Several functions have been combined and made into helper functions.
+Naming conventions of variables is consistent.
