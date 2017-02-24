@@ -9,10 +9,10 @@
 #' Should be produced by gtfToExons()
 #' @return Granges with formatted query
 #' @export
+#' @import GenomicRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
-#' package = "branchpointer")
-#' exons <- readExonAnnotation(smallExons)
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
 #' windowquery <- makeRegions("ENSG00000139618", "gene_id", exons)
 #' windowquery <- makeRegions("ENST00000357654", "transcript_id", exons)
 #' windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
@@ -91,6 +91,6 @@ makeRegions <- function(id, idType, exons) {
   window@ranges@start <- as.integer(windowStarts)
   window@ranges@width[1:length(windowStarts)] <- as.integer(41)
 
-  return(getQueryLoc(window,queryType = "region",exons = exons.subset))
+  return(getQueryLoc(window,queryType = "region",exons = exons[y2]))
 
 }
