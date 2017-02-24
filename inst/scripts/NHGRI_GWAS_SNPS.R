@@ -27,40 +27,38 @@ options(scipen = 999)
 bedtools <-  "/Applications/apps/bedtools2/bin/bedtools"
 
 # format exon annotation
-exons <- readExonAnnotation("gencode.v24.annotation.gtf")
+exons <- gtfToExons("gencode.v24.annotation.gtf")
 
 # read in GWAS annotation
 NHGRI_GWAS <- read.delim("gwas_catalog_v1.0.1-associations_e85-r2016-08-14.tsv",
                          stringsAsFactors = FALSE)
 
 # convert 'intron_variant' rs ids to query format
-mart_snp <- useMart("ENSEMBL_MART_SNP", dataset = "hsapiens_snp")
+mart.snp <- useMart("ENSEMBL_MART_SNP", dataset = "hsapiens_snp")
 query <- snpToQuery(NHGRI_GWAS$SNPS[NHGRI_GWAS$CONTEXT == "intron_variant"],
-                    mart = mart_snp)
+                    mart.snp=mart.snp)
 
 # get location of SNPs
-query <- getQueryLoc(query,query_type = "SNP",
+query <- getQueryLoc(query,queryType = "SNP",
                      exons = exons, filter = TRUE)
 
-# get all features for branchpoint prediction
-query_attributes <- getBranchpointSequence(query,
-                                        query_type = "SNP",
-                                        genome = "GRCh38.p5.genome.fa",
-                                        bedtools_location = bedtools)
 # predict branchpoints
-branchpoint_predictions <- predictBranchpoints(query_attributes)
+branchpointPredictions <- predictBranchpoints(query,
+                                        queryType = "SNP",
+                                        genome = "~/Downloads/GRCh38.p5.genome.fa",
+                                        bedtoolsLocation = bedtools)
 
 # filter for SNPs that create or delete branchpoints
-snp_stats <- predictionsToStats(branchpoint_predictions, query)
-snp_stats <- snp_stats[snp_stats$created_n > 0 | snp_stats$deleted_n > 0,]
+query <- predictionsToStats(query,branchpointPredictions)
+querySignificant <- query[query$created_n > 0 | query$deleted_n > 0]
 
-snp_stats$U2_diff <- abs(snp_stats$max_U2_REF - snp_stats$max_U2_ALT)
-snp_stats <- arrange(snp_stats, plyr::desc(U2_diff))
+querySignificant@elementMetadata$U2_diff <- abs(querySignificant$max_U2_REF - querySignificant$max_U2_ALT)
+querySignificantTable <- arrange(as.data.frame(querySignificant@elementMetadata), plyr::desc(U2_diff))
 
 # plot rs17000647
 pdf("rs17000647_branchpoints.pdf", width = 8, height = 6)
-plotBranchpointWindow(snp_stats$id[1], branchpoint_predictions,
-                      query_attributes, plot_mutated = T,
-                      plot_structure = T, exons = exons)
+plotBranchpointWindow(querySignificantTable$id[1], branchpointPredictions,
+                      plotMutated = T,
+                      plotStructure = T, exons = exons)
 dev.off()
 
