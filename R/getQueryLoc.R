@@ -1,3 +1,37 @@
+#' Convert exon annotation GRanges to intron locations
+#'
+#' Converts exon annotation to intron locations overlapping the branchpoint region
+#' for exculsion of non-branchpoint region SNPs
+#' Returns a character vector of chromosome locations
+#' @param exons data.frame containing exon co-ordinates.
+#' Should be produced by gtfToExons()
+#' @param maxDist Maximum distance from the 3' exon to create the branchpoint region.
+#' @return vector of chromosome names and intronic locations
+#' @import GenomicRanges
+#' @keywords internal
+#' @author Beth Signal
+exonsToIntrons <- function(exons, maxDist = 50){
+  
+  #split exon annotation by strand
+  exons.pos <- exons[exons@strand=="+",]
+  exons.neg <- exons[exons@strand=="-",]
+  
+  #make vectors of all co-ordinates within the branchpoint window
+  intronLocs.p <- unlist(lapply(exons.pos@ranges@start, function(x){(x-maxDist):(x-1)}))
+  intronChroms.p <- rep(exons.pos@seqnames, each=maxDist)
+  intronLocs.n <- unlist(lapply(exons.neg@ranges@start + exons.neg@ranges@width - 1, function(x){(x+1):(x+maxDist)}))
+  intronChroms.n <- rep(exons.neg@seqnames, each=maxDist)
+  
+  introns <- data.frame(chromosome=c(intronChroms.p,intronChroms.n),
+                        chr_start=c(intronLocs.p,intronLocs.n))
+  
+  #format as chrom_1000000
+  chromAndStart <- paste(introns$chromosome, introns$chr_start,sep="_")
+  chromAndStart <- gsub(" ","",chromAndStart)
+  
+  return(chromAndStart)
+}
+
 #' Get the closest 3' and 5' exons
 #'
 #' Finds the closest annotated exons from a genomic co-ordinate.
