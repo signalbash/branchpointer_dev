@@ -9,6 +9,8 @@
 #' @import biomaRt
 #' @import GenomicRanges
 #' @importFrom stringr str_split
+#' @importFrom S4Vectors Rle
+#' @importFrom IRanges IRanges
 #' @examples
 #' mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
 #' query <- snpToQuery("rs17000647", mart.snp)
@@ -41,15 +43,15 @@ snpToQuery <- function(refSNP, mart.snp){
 
   
   
-  queryGRanges <- GRanges(seqnames=Rle(paste0("chr",snpInfo$chr_name)),
-                          ranges=IRanges(start=snpInfo$chrom_start, width=1),
+  queryGRanges <- GRanges(seqnames=S4Vectors::Rle(paste0("chr",snpInfo$chr_name)),
+                          ranges=IRanges::IRanges(start=snpInfo$chrom_start, width=1),
                           strand="*",
                           id=snpInfo$refsnp_id,
                           ref_allele=stringr::str_sub(snpInfo$allele,1,1),
                           alt_allele=stringr::str_sub(snpInfo$allele,3,3))
 
   #check for unstranded queries & replace with positive & negative
-  unstranded <- which(queryGRanges@strand == "*")
+  unstranded <- which(as.logical(queryGRanges@strand == "*"))
   if(length(unstranded)>0){
     queryGRanges.pos <- queryGRanges[unstranded]
     queryGRanges.pos@elementMetadata$id <- 
