@@ -8,11 +8,12 @@
 #' whereas \code{"withExon"} will plot all transcripts containing the exon.
 #' @return ggplot2 plot transcript structures
 #' @import ggplot2
+#' @export
 #' @examples
 #' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
-#' plotStructure(exonID= "ENSE00001184784.4", exons)
+#' plotStructure(exonID = "ENSE00001184784.4", exons)
 #' @author Beth Signal
 plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
   
@@ -117,19 +118,17 @@ plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
 #' @importFrom cowplot ggdraw
 #' @importFrom cowplot draw_plot
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
-#' package = "branchpointer")
-#' exons <- readExonAnnotation(smallExons)
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,query_type = "SNP")
+#' query <- readQueryFile(querySNP,queryType = "SNP")
 #' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
-#' predictions <- predictBranchpoints(query,
-#' queryType = "SNP",
-#' BSgenome = genome)
-#' plotBranchpointWindow(query@elementmetadata$id[1], predictions,
-#' plot_mutated = TRUE, exons = exons)
+#' 
+#' predictions <- predictBranchpoints(query,queryType = "SNP", BSgenome = genome)
+#' plotBranchpointWindow(query@elementMetadata$id[1], predictions,
+#' plotMutated = TRUE, exons = exons)
 #' @author Beth Signal
 
 plotBranchpointWindow <- function(queryName,
