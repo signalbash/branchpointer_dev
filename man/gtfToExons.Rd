@@ -4,26 +4,22 @@
 \alias{gtfToExons}
 \title{Convert GTF file to exon location file}
 \usage{
-gtfToExons(gtf, output_file = NA)
+gtfToExons(gtf)
 }
 \arguments{
 \item{gtf}{file containing the gtf annotation.}
-
-\item{output_file}{name of the file to write the exon annotation to.
-If not specified, will write to the same location as the gtf file.}
 }
 \value{
-exon annotation data.frame
+exon annotation GRanges
 }
 \description{
 Converts a GTF annotation to exon locations
 }
 \examples{
-small_gtf <- system.file("extdata","gencode.v24.annotation.small.gtf",
+smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 package = "branchpointer")
-exons <- gtfToExons(small_gtf)
+exons <- gtfToExons(smallExons)
 }
 \author{
 Beth Signal
 }
-

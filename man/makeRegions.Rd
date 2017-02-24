@@ -4,28 +4,27 @@
 \alias{makeRegions}
 \title{Make branchpoint window regions}
 \usage{
-makeRegions(id, id_type, exons)
+makeRegions(id, idType, exons)
 }
 \arguments{
 \item{id}{identifier for the query gene/transcript/exon id}
 
-\item{id_type}{type of id to match in the exon annotation file (\code{"gene_id"},
+\item{idType}{type of id to match in the exon annotation file (\code{"gene_id"},
 \code{"transcript_id"}, or \code{"exon_id"})}
 
 \item{exons}{data.frame containing exon co-ordinates.
 Should be produced by gtfToExons()}
 }
 \value{
-data.frame with frormatted query
+Granges with formatted query
 }
 \description{
 Genrate branchpoint window regions corresponding to annotated exon(s) within a
 queried gene, transcript or exon id
 }
 \examples{
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
-package = "branchpointer")
-exons <- readExonAnnotation(small_exons)
+smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+exons <- gtfToExons(smallExons)
 windowquery <- makeRegions("ENSG00000139618", "gene_id", exons)
 windowquery <- makeRegions("ENST00000357654", "transcript_id", exons)
 windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
@@ -33,4 +32,3 @@ windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
 \author{
 Beth Signal
 }
-

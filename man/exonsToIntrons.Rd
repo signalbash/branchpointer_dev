@@ -2,15 +2,15 @@
 % Please edit documentation in R/exonsToIntrons.R
 \name{exonsToIntrons}
 \alias{exonsToIntrons}
-\title{Convert exon annotation data.frame to intron locations}
+\title{Convert exon annotation GRanges to intron locations}
 \usage{
-exonsToIntrons(exons, max_dist = 50)
+exonsToIntrons(exons, maxDist = 50)
 }
 \arguments{
 \item{exons}{data.frame containing exon co-ordinates.
 Should be produced by gtfToExons()}
 
-\item{max_dist}{Maximum distance from the 3' exon to create the branchpoint region.}
+\item{maxDist}{Maximum distance from the 3' exon to create the branchpoint region.}
 }
 \value{
 vector of chromosome names and intronic locations
@@ -18,14 +18,9 @@ vector of chromosome names and intronic locations
 \description{
 Converts exon annotation to intron locations overlapping the branchpoint region
 for exculsion of non-branchpoint region SNPs
-Returns a character vector of chromosome_location
-}
-\examples{
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", package = "branchpointer")
-exons <- readExonAnnotation(small_exons)
-introns <- exonsToIntrons(exons, 50)
+Returns a character vector of chromosome locations
 }
 \author{
 Beth Signal
 }
-
+\keyword{internal}

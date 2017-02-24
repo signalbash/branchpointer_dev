@@ -4,44 +4,42 @@
 \alias{getQueryLoc}
 \title{Find the closest 3' and 5' exons to a branchpointer query}
 \usage{
-getQueryLoc(query, query_type, max_dist = 50, filter = TRUE, exons,
-  use_parallel = FALSE, cores = 1)
+getQueryLoc(query, queryType, maxDist = 50, filter = TRUE, exons,
+  useParallel = FALSE, cores = 1)
 }
 \arguments{
-\item{query}{branchpointer query data.frame
+\item{query}{branchpointer query GenomicRanges
 must have chromosome at position 2, genomic co-ordinate at position 3,
 and strand at position 4.}
 
-\item{query_type}{type of query file (\code{"SNP"} or \code{"region"})}
+\item{queryType}{type of query file (\code{"SNP"} or \code{"region"})}
 
-\item{max_dist}{maximum distance a SNP can be from an annotated 3' exon.}
+\item{maxDist}{maximum distance a SNP can be from an annotated 3' exon.}
 
 \item{filter}{remove SNP queries prior to finding finding nearest exons.}
 
 \item{exons}{data.frame containing exon co-ordinates.
 Should be produced by gtfToExons()}
 
-\item{use_parallel}{use parallelisation to speed up code?
+\item{useParallel}{use parallelisation to speed up code?
 (reccomended for > 500 query entries)}
 
 \item{cores}{number of cores to use in parallelisation (default = \code{1})}
 }
 \value{
-data.frame with the query and its location relative to the 3' and 5' exons
+GenomicRanges with the query and its location relative to the 3' and 5' exons
 }
 \description{
-Finds the closest annotated exons from genomic co-ordinates in a branchpointer query data.frame.
+Finds the closest annotated exons from genomic co-ordinates in a branchpointer query GRanges
 }
 \examples{
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
-package = "branchpointer")
-exons <- readExonAnnotation(small_exons)
+smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+exons <- gtfToExons(smallExons)
 
-query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-query <- readQueryFile(query_snp,query_type = "SNP")
-query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
+querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(querySNP,queryType = "SNP")
+query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 }
 \author{
 Beth Signal
 }
-

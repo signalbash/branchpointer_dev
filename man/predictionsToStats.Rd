@@ -4,25 +4,25 @@
 \alias{predictionsToStats}
 \title{Convert SNP branchpoint predictions across the branchpoint window to an intronic summary}
 \usage{
-predictionsToStats(predictions, query, BP_probability_cutoff = 0.5,
-  BP_probability_change = 0.2)
+predictionsToStats(query, predictions, probabilityCutoff = 0.5,
+  probabilityChange = 0.2)
 }
 \arguments{
+\item{query}{query GRanges containing all SNP ids to be summarised}
+
 \item{predictions}{site-wide branchpoint proability predictions
 produced from predictBranchpoints()}
 
-\item{query}{query data.frame containing all snp ids to be summarised}
-
-\item{BP_probability_cutoff}{Value to be used as the cutoff for
+\item{probabilityCutoff}{Value to be used as the cutoff for
 discriminating branchpoint sites from non-branchpoint sites
 (default = \code{0.5})}
 
-\item{BP_probability_change}{Minimum probability score change
+\item{probabilityChange}{Minimum probability score change
 required to call a branchpoint site as deleted or created by
 a SNP (default = \code{0.2})}
 }
 \value{
-data.frame with summarised branchpoint changes
+GRanges with summarised branchpoint changes
 occuring within the intron due to a SNP.
 }
 \description{
@@ -30,22 +30,17 @@ Takes predictions of branchpoint probabilities from a reference
 and alternative SNP and summarises the effect(s) of the SNP.
 }
 \examples{
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 package = "branchpointer")
-exons <- readExonAnnotation(small_exons)
+exons <- gtfToExons(smallExons)
 genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-query <- readQueryFile(query_snp,query_type = "SNP")
-query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
-query_attributes <- getBranchpointSequence(query,
-query_type = "SNP",
-useBSgenome = TRUE,
-BSgenome = genome)
-branchpoint_predictions <- predictBranchpoints(query_attributes)
-snp_stats <- predictionsToStats(branchpoint_predictions, query)
+querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(querySNP,queryType = "SNP")
+query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
+predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = genome)
+snpStats <- predictionsToStats(query,predictions)
 }
 \author{
 Beth Signal
 }
-

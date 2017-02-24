@@ -4,14 +4,14 @@
 \alias{readQueryFile}
 \title{Read a query file}
 \usage{
-readQueryFile(query_file, query_type)
+readQueryFile(queryFile, queryType)
 }
 \arguments{
-\item{query_file}{tab delimited file containing query information.
+\item{queryFile}{tab delimited file containing query information.
 For intronic regions should be in the format: region id, chromosome name, region start, region id, strand.
 For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)}
 
-\item{query_type}{type of query file (\code{"SNP"} or \code{"region"})}
+\item{queryType}{type of query file (\code{"SNP"} or \code{"region"})}
 }
 \value{
 data.frame with formatted query
@@ -22,13 +22,12 @@ Converts unstranded SNPs to two entries for each strand.
 Checks for duplicate names and replaces if found.
 }
 \examples{
-query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-query <- readQueryFile(query_snp,query_type = "SNP")
+querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+query <- readQueryFile(querySNP,queryType = "SNP")
 
-query_snp <- system.file("extdata","intron_example.txt", package = "branchpointer")
-query <- readQueryFile(query_snp,query_type = "region")
+queryIntron <- system.file("extdata","intron_example.txt", package = "branchpointer")
+query <- readQueryFile(queryIntron,queryType = "region")
 }
 \author{
 Beth Signal
 }
-

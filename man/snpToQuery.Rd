@@ -4,12 +4,12 @@
 \alias{snpToQuery}
 \title{Gets a branchpointer formatted query from refsnp ids}
 \usage{
-snpToQuery(rs_id, mart_snp)
+snpToQuery(refSNP, mart.snp)
 }
 \arguments{
-\item{rs_id}{Vector of refsnp ids}
+\item{refSNP}{Vector of refsnp ids}
 
-\item{mart_snp}{biomaRt mart object specifying the BioMart database and dataset to be used}
+\item{mart.snp}{biomaRt mart object specifying the BioMart database and dataset to be used}
 }
 \value{
 formatted SNP query data.frame
@@ -19,10 +19,9 @@ Searches Biomart for refsnp ids, and pulls genomic location and sequence identit
 Reformats alleles so each query has only one alternative allele
 }
 \examples{
-mart <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
-query <- snpToQuery("rs17000647", mart)
+mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
+query <- snpToQuery("rs17000647", mart.snp)
 }
 \author{
 Beth Signal
 }
-
