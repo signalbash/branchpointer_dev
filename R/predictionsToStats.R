@@ -16,20 +16,16 @@
 #' @export
 #' @import GenomicRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.exons.small.txt",
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,query_type = "SNP")
-#' query <- getQueryLoc(query,query_type = "SNP",exons = exons, filter = FALSE)
-#' query_attributes <- getBranchpointSequence(query,
-#' query_type = "SNP",
-#' useBSgenome = TRUE,
-#' BSgenome = genome)
-#' branchpoint_predictions <- predictBranchpoints(query_attributes)
-#' snp_stats <- predictionsToStats(branchpoint_predictions, query)
+#' query <- readQueryFile(querySNP,queryType = "SNP")
+#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
+#' predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = genome)
+#' snpStats <- predictionsToStats(query,predictions)
 #' @author Beth Signal
 #'
 predictionsToStats <- function(query,
