@@ -10,6 +10,10 @@
 #' @return data.frame with formatted query
 #' @export
 #' @import GenomicRanges
+#' @importFrom data.table fread
+#' @importClassesFrom data.table data.table
+#' @importFrom S4Vectors Rle
+#' @importFrom IRanges IRanges
 #' @examples
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
 #' query <- readQueryFile(querySNP,queryType = "SNP")
@@ -21,7 +25,7 @@
 readQueryFile <- function(queryFile, queryType){
 
   if(missing(queryType)){
-    queryTest <- read.table(
+    queryTest <- data.table::fread(
       queryFile,header = TRUE,
       nrows=1)
 
@@ -42,12 +46,12 @@ readQueryFile <- function(queryFile, queryType){
     message("please specify query_type as \"region\" or \"SNP\"")
   }else{
     if (queryType == "SNP") {
-      query <- read.table(
+      query <- data.table::fread(
         queryFile,header = TRUE,
         colClasses = c(
           "character", "character", "numeric",
           "character", "character", "character"
-        ))
+        ), data.table=FALSE)
       colnames(query)[1:6] <-
         c("id", "chromosome","chrom_start","strand","ref_allele", "alt_allele")
 
@@ -67,22 +71,22 @@ readQueryFile <- function(queryFile, queryType){
         query <- rbind(query[-unstranded,], query.pos,query.neg)
         }
       
-      queryGRanges <- GRanges(seqnames=Rle(query$chromosome),
-                              ranges=IRanges(start=query$chrom_start, width=1),
+      queryGRanges <- GRanges(seqnames=S4Vectors::Rle(query$chromosome),
+                              ranges=IRanges::IRanges(start=query$chrom_start, width=1),
                               strand=query$strand,
                               id=query$id,
                               ref_allele=query$ref_allele,
                               alt_allele=query$alt_allele)
     }else if (queryType == "region") {
-      query <- read.table(
+      query <- data.table::fread(
         queryFile, header = TRUE,colClasses = c(
           "character","character","numeric","numeric","character"
-        ))
+        ), data.table=FALSE)
       colnames(query) <-
         c("id","chromosome","chrom_start","chrom_end","strand")
       
-      queryGRanges <- GRanges(seqnames=Rle(query$chromosome),
-                              ranges=IRanges(start=query$chrom_start, 
+      queryGRanges <- GRanges(seqnames=S4Vectors::Rle(query$chromosome),
+                              ranges=IRanges::IRanges(start=query$chrom_start, 
                                              end=query$chrom_end),
                               strand=query$strand,
                               id=query$id)
