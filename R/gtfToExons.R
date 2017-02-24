@@ -7,6 +7,7 @@
 #' @import stringr
 #' @import GenomicRanges
 #' @importFrom utils write.table
+#' @importFrom rtracklayer import
 #' @examples
 #' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
 #' package = "branchpointer")
