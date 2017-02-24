@@ -12,6 +12,7 @@ BiocStyle::latex()
 @
 \begin{document}
 
+
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
 opts_chunk$set(out.width="0.7\\maxwidth",fig.align="center")
@@ -63,7 +64,7 @@ wget ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.ann
 gunzip gencode.v24.annotation.gtf.gz
 \end{verbatim}
 
-branchpointer requires either a genome .fa file, or a BSGenome object for sequence retreval.
+branchpointer requires either a genome .fa file, or a BSGenome object for sequence retrieval.
 The genome must correspond to the gtf used -- i.e. gencodev24 uses GRCh38 (p5).
 
 Download .fa:
@@ -86,22 +87,17 @@ Start by loading branchpointer.
 library(branchpointer)
 @
 
-readExonAnnotation will generate an exon annotation table from a gtf, and save it in the same location.
+readExonAnnotation will generate an exon annotation GRanges object from a gtf.
 We will load in the gtf downloaded from the preparation section.
 <<read_exon_gtf, message=FALSE, eval=FALSE>>=
-exons <- readExonAnnotation("gencode.v24.annotation.gtf")
+exons <- gtfToExons("gencode.v24.annotation.gtf")
 @
 
-After this step has been performed once, the exon file can be specified instead to save reformatting the gtf file again.
-<<read_exon_txt, message=FALSE, eval=FALSE>>=
-exons <- readExonAnnotation("gencode.v24.annotation.exons.txt")
-@
-
-We will load in a small formatted exon annotation file from the package data for the following examples.
+We will load in a small gtf from the package data for the following examples.
 <<read_exon_small, message=FALSE>>=
-small_exons <- system.file("extdata","gencode.v24.annotation.exons.small.txt", 
+smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf", 
                            package = "branchpointer")
-exons <- readExonAnnotation(small_exons)
+exons <- gtfToExons(smallExons)
 @
 
 \section{Branchpoint annotations in intronic regions}
@@ -110,51 +106,51 @@ exons <- readExonAnnotation(small_exons)
 
 Query regions must contain a branchpoint window - that is the region located at -18 to -44 from the 3' splice site. 
 Each region given will be treated as only one query, and associated with the closest 3' exon. 
-To cover multiple 3'exons, please provide branchpointer with seperate region queries.
+To cover multiple 3'exons, please provide branchpointer with separate region queries.
 For known regions, queries can be supplied as a table:
 
 <<read_introns, message=FALSE>>=
-query_intron <- system.file("extdata","intron_example.txt", 
+queryIntron <- system.file("extdata","intron_example.txt", 
                             package = "branchpointer")
-query_intron <- readQueryFile(query_intron,query_type = "region")
+queryIntron <- readQueryFile(queryIntron,queryType = "region")
 
-head(query_intron)
+head(queryIntron)
 @
 
 Then location information can be retrieved using
 <<intron_loc, message=FALSE>>=
-query_intron <- getQueryLoc(query_intron,query_type="region",exons = exons)
-head(query_intron)
+queryIntron <- getQueryLoc(queryIntron,queryType = "region",exons = exons)
+head(queryIntron)
 @
 
-For large numbers of queries (over 500), it is recomended to use parallelisation to speed up computation. 
+For large numbers of queries (over 500), it is recommended to use parallelisation to speed up computation. 
 
 This can be done by setting \begin{verbatim}use_parallel=TRUE\end{verbatim} and supplying a cores number greater than 1 to functions with this argument.
 
 Note that if the number of specified cores is greater than the number available, the maximum number available will be utilised
 
 <<intron_loc_parallel, message=FALSE, eval=FALSE>>=
-query_intron <- getQueryLoc(query_intron,query_type="region",
-                            exons = exons, use_parallel=TRUE, cores=4)
+queryIntron <- getQueryLoc(queryIntron,queryType="region",
+                            exons = exons, useParallel=TRUE, cores=4)
 @
 
 Alternatively, to generate branchpoint window region queries by exon annotations, the exon annotation file can be used:
 
 Note that when searching for genes, transcripts, or exons, the ids used must be in the same format as in the annotation file (i.e. ENSG00000XXXXXX, ENST00000XXXXXX, ENSE00000XXXXXX). If you are unsure of an id, aliases can typically be found through ensembl (ensembl.org), or through a biomaRt query.
 <<make_intron, message=FALSE>>=
-query_intron_make <- makeRegions("ENSE00003541068.1", "exon_id", exons)
-head(query_intron_make)
+queryIntronMake <- makeRegions("ENSE00003541068", "exon_id", exons)
+head(queryIntronMake)
 
 #or for multiple ids
-query_intron_make <- lapply(c("ENSE00003541068.1", "ENSE00003461148.1"), 
+queryIntronMake <- lapply(c("ENSE00003541068", "ENSE00003461148"), 
                       makeRegions, "exon_id", exons)
                       
-query_intron_make <- do.call("rbind", query_intron_make)
+queryIntronMake <- do.call("c", queryIntronMake)
 @
 
-\subsection{Get sequence attributes for query regions}
+\subsubsection{Using bedtools}
 
-Sequences covering each site +/- 250 nt are retrieved using bedtools. 
+During the prediction step, if a BSGenome object is not specified,sequences covering each site +/- 250 nt can be retrieved using bedtools. 
 The absolute location of the bedtools binary must be provided for calls from within R.
 To find the location of your installed bedtools binary, using the command line type:
 
@@ -164,43 +160,21 @@ which bedtools
 
 If chromosome names in the .fa genome file do not match those in the query (i.e chr1 in query, 1 in .fa), the argument rm\_chr should be set to FALSE.
 
-This will generate a data.frame with a row for each site (of 27) in branchpoint window regions.
-If a SNP query type is provided (See next section), this will also perform an in silico mutation of the sequence.
-
-All features required for the model to predict branchpoint probability are contained within this data.frame.
-
-When performing this step for multiple cases simultaneously, a unique\_id can be provided to prevent incorrect \.fa files being read in during the sequence retreival step.
-
-<<make_intron_bedtools, message=FALSE, eval=FALSE>>=
-query_attributes_intron <- getBranchpointSequence(query_intron,
-                                        query_type = "region",
-                                        genome = "GRCh38.p5.genome.fa",
-                                        bedtools_location="/Apps/bedtools2/bin/bedtools")
-@
-
-Alternatively, a BSgenome object can be used instead of specifying a genome .fa file and using bedtools.
-<<make_intron_bs, message=FALSE>>=
-query_attributes_intron <- getBranchpointSequence(query_intron,
-                                        query_type = "region",
-                                        useBSgenome = TRUE,
-                                        BSgenome = genome)
-@
-
 \subsection{Predict branchpoint probabilities}
 
-Probabilities for each site within the window are then evaluated using the branchpointer model.
+Branchpoint probability scores can then be evaluated using the branchpointer model.
+This will generate a new GRanges object with a row for each site (of 27) in branchpoint window regions.
+If a SNP query type is provided (See next section), this will also perform an in silico mutation of the sequence.
+
 We recommend use of the cutoff probability 0.5 to distinguish branchpoints and non-branchpoint sites.
 U2 binding energy can be used as a measurement of branchpoint strength when the probability score is above the cutoff.
 
+All features required for the model to predict branchpoint probability are contained within the output object, along with the score and U2 binding energy.
+
 <<predict_introns, message=FALSE>>=
-branchpoint_predictions_intron <- predictBranchpoints(query_attributes_intron)
+branchpointPredictionsIntron <- predictBranchpoints(queryIntron, queryType = "region", BSgenome = genome)
 
-keep_bps <- which(branchpoint_predictions_intron$branchpoint_prob > 0.5)
-
-branchpoints_intron <- branchpoint_predictions_intron[keep_bps,]
-
-#top of the table, sorted by highest probability score
-head(arrange(branchpoints_intron, plyr::desc(branchpoint_prob)))
+head(branchpointPredictionsIntron)
 @
 
 The window scores can be plotted using plotBranchpointWindow(), with optional plots for gene and isoform structure.
@@ -208,16 +182,18 @@ The main panel displays the probability scores of each site within the branchpoi
 
 BRCA2 intron (ENSE00002167182.1 - ENSE00003461148.1):
 <<brca2-plot>>=
-plotBranchpointWindow(query_intron$id[2], branchpoint_predictions_intron,
-                      query_attributes_intron,
-                      probability_cutoff = 0.5,plot_mutated = FALSE,
-                      plot_structure = TRUE,exons = exons)
+plotBranchpointWindow(queryIntron$id[2], 
+                      branchpointPredictionsIntron,
+                      probabilityCutoff = 0.5,
+                      plotMutated = FALSE,
+                      plotStructure = TRUE,
+                      exons = exons)
 @
 
 
 \section{Effects of SNPs on branchpoint annotations}
 In addition to locating branchpoints in intronic windows, branchpointer can be used to evaluate the local effects of SNPs on branchpoints.
-The general workflow is the same as for annotaion of intronic windows, however \begin{verbatim}query_type="SNP"\end{verbatim} must be used.
+The general workflow is the same as for annotation of intronic windows, however \begin{verbatim}queryType="SNP"\end{verbatim} must be used.
 
 \subsection{Read query and calculate location attributes}
 
@@ -225,23 +201,23 @@ Query SNPs should be located nearby a branchpoint window to have any potential e
 SNP queries can be supplied as a table formatted as follows:
 
 <<read_snp, message=FALSE>>=
-query_snp <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-query_snp <- readQueryFile(query_snp, query_type = "SNP")
+querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+querySNP <- readQueryFile(querySNP,queryType="SNP")
 @
 
 Alternatively, appropriate attributes can be pulled from biomart when a list of refsnp ids is provided:
 <<read_snp_mart, message=FALSE>>=
 library(biomaRt)
 mart <- useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp",host="www.ensembl.org")
-query_snp <- snpToQuery(c("rs17000647","rs5031002","rs998731"), mart_snp = mart)
+querySNP <- snpToQuery(c("rs17000647","rs5031002","rs998731"), mart.snp = mart)
 @
 
 By default, all SNPs retrieved will be unstranded, and hence further processing will be done on both strands
 
 Location information can be retrieved using:
 <<snp_loc, message=FALSE>>=
-query_snp <- getQueryLoc(query_snp, query_type="SNP", exons = exons, filter = FALSE)
-head(query_snp)
+querySNP <- getQueryLoc(querySNP, queryType="SNP", exons = exons, filter = FALSE)
+head(querySNP)
 @
 
 Each SNP will be associated with the closest 3' exon. If SNPs are distal from branchpoint windows, the max\_dist argument will remove any greater than the specified distance. Filtering prior to exon associations can speed up processing in instances where it is unknown if the majority of SNPs fall nearby branchpoint windows.
@@ -249,42 +225,36 @@ Each SNP will be associated with the closest 3' exon. If SNPs are distal from br
 Queries can be provided as stranded or unstranded. 
 In the case of unstranded queries, any value except "+" or "-" will cause branchpointer to run on both strands.
 
-\subsection{Get sequence attributes for query regions}
+\subsection{Predict branchpoint probabilities}
 
 Using a .fa and bedtools:
 <<snp_att_fa, message=FALSE, eval=FALSE>>=
-query_attributes_snp <- getBranchpointSequence(query_snp,
-                                        query_type = "SNP",
+branchpointPredictionsSNP <- getBranchpointSequence(querySNP,
+                                        queryType = "SNP",
                                         genome = "GRCh38.p5.genome.fa",
-                                        bedtools_location="/Apps/bedtools2/bin/bedtools")
+                                        bedtoolsLocation="/Apps/bedtools2/bin/bedtools")
 @
 
 Using a BSgenome:
 <<snp_att_BS, message=FALSE>>=
 #for query SNPs
-query_attributes_snp <- getBranchpointSequence(query_snp,
-                                        query_type = "SNP",
-                                        useBSgenome = TRUE,
+branchpointPredictionsSNP <- predictBranchpoints(querySNP,
+                                        queryType = "SNP",
                                         BSgenome = genome)
-@                                        
-                  
-\subsection{Predict branchpoint probabilities}
-                  
-<<snp_pred, message=FALSE>>=
-branchpoint_predictions_snp <- predictBranchpoints(query_attributes_snp)
 
 #to summarise effects:
-snp_stats <- predictionsToStats(branchpoint_predictions_snp, query_snp)
-head(snp_stats)
+querySNP <- predictionsToStats(querySNP,branchpointPredictionsSNP)
+head(querySNP)
 @
 
 The window scores in the reference and alternative sequences can be visualised using plotBranchpointWindow().
 
 rs17000647 in C4orf26 intron 1.
 <<rs17000647-plot>>=
-plotBranchpointWindow(query_snp$id[2], branchpoint_predictions_snp,query_attributes_snp,
-                      probability_cutoff = 0.5,plot_mutated = TRUE,
-                      plot_structure = TRUE,exons = exons)
+plotBranchpointWindow(querySNP$id[1], 
+                      branchpointPredictionsSNP,
+                      probabilityCutoff = 0.5,plotMutated = TRUE,
+                      plotStructure = TRUE,exons = exons)
 @
 
 \section{Session info}
