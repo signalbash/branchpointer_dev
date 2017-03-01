@@ -17,14 +17,14 @@
 #' @author Beth Signal
 plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
   
-  geneID <- exons@elementMetadata$gene_id[match(exonID, exons@elementMetadata$exon_id)]
+  geneID <- exons$gene_id[match(exonID, exons$exon_id)]
   
-  exonsForPlot <- exons[exons@elementMetadata$gene_id == geneID]  
+  exonsForPlot <- exons[exons$gene_id == geneID]  
   
-  exonsForPlot <- cbind(chromosome=as.character(exonsForPlot@seqnames), 
-                        as.data.frame(exonsForPlot@ranges),
-                        strand=as.character(exonsForPlot@strand),
-                        as.data.frame(exonsForPlot@elementMetadata))
+  exonsForPlot <- cbind(chromosome=as.character(seqnames(exonsForPlot)), 
+                        as.data.frame(ranges(exonsForPlot)),
+                        strand=as.character(strand(exonsForPlot)),
+                        as.data.frame(mcols(exonsForPlot)))
   
   exonsForPlot$start <- as.numeric(exonsForPlot$start)
   exonsForPlot$end <- as.numeric(exonsForPlot$end)
@@ -36,7 +36,7 @@ plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
   exonsForPlot$length <- exonsForPlot$end - exonsForPlot$start
   
   
-  if (exonsForPlot$strand[1] == "+") {
+  if (as.logical(exonsForPlot$strand[1] == "+")) {
     BPexons = which(exonsForPlot$start ==
                       exonsForPlot$start[which(exonsForPlot$exon_id ==
                                                  exonID)][1])
@@ -76,7 +76,7 @@ plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
   exonsForPlot$transcript_id_num <- as.numeric(as.factor(exonsForPlot$transcript_id)) * -1
   exonsForPlotLines$transcript_id_num <- as.numeric(as.factor(exonsForPlotLines$transcript_id)) * -1
   
-  if (exonsForPlot$strand[1] == "+") {
+  if (as.logical(exonsForPlot$strand[1] == "+")) {
     exonsForPlotLines$transcript_id <- paste0(exonsForPlotLines$transcript_id, " (+)")
   }else{
     exonsForPlotLines$transcript_id <- paste0(exonsForPlotLines$transcript_id, " (-)")
@@ -127,7 +127,7 @@ plotStructure <- function(exonID, exons, keepTranscripts="overlapping"){
 #' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 #' 
 #' predictions <- predictBranchpoints(query,queryType = "SNP", BSgenome = genome)
-#' plotBranchpointWindow(query@elementMetadata$id[1], predictions,
+#' plotBranchpointWindow(query$id[1], predictions,
 #' plotMutated = TRUE, exons = exons)
 #' @author Beth Signal
 
@@ -138,14 +138,12 @@ plotBranchpointWindow <- function(queryName,
                                  plotStructure = TRUE,
                                  exons) {
   #find the query
-  ind <- which(!is.na(match(
-    predictions@elementMetadata$id, queryName
-  )))
-  predictions.snp <- predictions[which(predictions@elementMetadata$id == queryName)]
+  ind <- which(!is.na(match(predictions$id, queryName)))
+  predictions.snp <- predictions[which(predictions$id == queryName)]
 
-  predictions.snp@elementMetadata$to_3prime_point <- predictions.snp@elementMetadata$to_3prime_point * -1
+  predictions.snp$to_3prime_point <- predictions.snp$to_3prime_point * -1
   
-  predictions.snp.ref <- as.data.frame(predictions.snp@elementMetadata[predictions.snp@elementMetadata$status == "REF",])
+  predictions.snp.ref <- as.data.frame(mcols(predictions.snp)[predictions.snp$status == "REF",])
   colnames(predictions.snp.ref) <- gsub("to_3prime_point","distance",colnames(predictions.snp.ref))
   colnames(predictions.snp.ref) <- gsub("seq_pos0","nucleotide",colnames(predictions.snp.ref))
   predictions.snp.ref$nucleotide <- as.character(predictions.snp.ref$nucleotide)
@@ -190,7 +188,7 @@ plotBranchpointWindow <- function(queryName,
 
   if (plotMutated == TRUE) {
     
-    predictions.snp.alt <- as.data.frame(predictions.snp@elementMetadata[predictions.snp@elementMetadata$status == "ALT",])
+    predictions.snp.alt <- as.data.frame(mcols(predictions.snp)[predictions.snp$status == "ALT",])
     colnames(predictions.snp.alt) <- gsub("to_3prime_point","distance",colnames(predictions.snp.alt))
     colnames(predictions.snp.alt) <- gsub("seq_pos0","nucleotide",colnames(predictions.snp.alt))
     predictions.snp.alt$nucleotide <- as.character(predictions.snp.alt$nucleotide)
@@ -261,7 +259,7 @@ plotBranchpointWindow <- function(queryName,
 
   #plot gene/transcript structure
   if (plotStructure == TRUE) {
-    exonID <- predictions.snp@elementMetadata$exon_3prime[1]
+    exonID <- predictions.snp$exon_3prime[1]
     plot.structure <- plotStructure(exonID, exons)
   }
     

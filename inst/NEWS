@@ -25,3 +25,6 @@ Version 0.99.7
 Branchpointer now is based upon the GRanges object class.
 Several functions have been combined and made into helper functions.
 Naming conventions of variables is consistent.
+
+Version 0.99.8
+Updated functions to use GRanges accessor functions

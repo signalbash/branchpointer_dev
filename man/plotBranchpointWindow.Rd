@@ -37,7 +37,7 @@ query <- readQueryFile(querySNP,queryType = "SNP")
 query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 
 predictions <- predictBranchpoints(query,queryType = "SNP", BSgenome = genome)
-plotBranchpointWindow(query@elementMetadata$id[1], predictions,
+plotBranchpointWindow(query$id[1], predictions,
 plotMutated = TRUE, exons = exons)
 }
 \author{

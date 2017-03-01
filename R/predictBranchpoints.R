@@ -32,10 +32,10 @@ getCanonical3SS <- function(ag){
 
 getPPT <- function(attributesLine){
   
-  dist3prime <- as.numeric(attributesLine@elementMetadata$to_3prime_point)
+  dist3prime <- as.numeric(attributesLine$to_3prime_point)
   
   #get sequence between the tested site and 3'exon
-  seq <- substr(attributesLine@elementMetadata$seq, 251, (250 + dist3prime))
+  seq <- substr(attributesLine$seq, 251, (250 + dist3prime))
   seq <- unlist(strsplit(seq, ""))
   
   pyramidines <- which(seq == "T" | seq == "C")
@@ -140,7 +140,8 @@ getPPT <- function(attributesLine){
             run <- length(newSeq)
             startp <- startp+point
           }
-          polyper.extend[py] <- length(which(newSeq == "C" | newSeq == "T")) / length(newSeq)
+          polyper.extend[py] <- 
+            length(which(newSeq == "C" | newSeq == "T")) / length(newSeq)
           seq.p <- newSeq
         }
         
@@ -222,35 +223,41 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     stop("please specify queryType as \"region\" or \"SNP\"")
   }else if (queryType == "SNP") {
     bed <- query
-    bed@ranges@start <- as.integer(bed@ranges@start - 1)
+    start(ranges(bed)) <- as.integer(start(ranges(bed)) - 1)
   }else if (queryType == "region") {
     bed <- query
-    bed@ranges@start[as.logical(bed@strand== "+")] <- as.integer(bed@ranges@start + bed@ranges@width - 1)[as.logical(bed@strand== "+")]
-    bed@ranges@start <- bed@ranges@start - as.integer(1)
-    bed@ranges@width[1:length(bed@ranges@width)] <- as.integer(2)
+    start(ranges(bed))[as.logical(strand(bed)== "+")] <- 
+      end(ranges(bed))[as.logical(strand(bed)== "+")]
+    start(ranges(bed)) <- start(ranges(bed)) - 1
+    width(ranges(bed)) <- 2
   }
   
   #extend bed file to cover +/- 250 nt from each query point
-  bed@ranges@width[1:length(bed@ranges@width)] <- as.integer(529)
-  bed@ranges@start[which(as.logical(bed@strand == "+"))] <- as.integer(bed@ranges@start - 250 - (44 - query@elementMetadata$to_3prime))[which(as.logical(bed@strand == "+"))]
-  bed@ranges@start[which(as.logical(bed@strand == "-"))] <- as.integer(bed@ranges@start - 277 + (44 - query@elementMetadata$to_3prime))[which(as.logical(bed@strand == "-"))]
+  start(ranges(bed))[which(as.logical(strand(bed) == "+"))] <- 
+    as.integer(start(ranges(bed)) - 250 - 
+                 (44 - query$to_3prime))[which(as.logical(strand(bed) == "+"))]
+  start(ranges(bed))[which(as.logical(strand(bed) == "-"))] <- 
+    as.integer(start(ranges(bed)) - 277 + 
+                 (44 - query$to_3prime))[which(as.logical(strand(bed) == "-"))]
+  width(ranges(bed))  <- 529
   
   
   if(!is.na(genome) & !missing(bedtoolsLocation)){
     #convert to .fasta using bedtools
-    bedTable <- data.frame(bed@seqnames, 
-                           bed@ranges@start,
-                           bed@ranges@start + bed@ranges@width -1,
-                           bed@elementMetadata$id,
+    bedTable <- data.frame(seqnames(bed), 
+                           start(ranges(bed)),
+                           end(ranges(bed)),
+                           bed$id,
                            score=0,
-                           bed@strand)    
+                           strand(bed))    
     
     if (rmChr == TRUE) {
       bedTable[,1] <- gsub("chr","", bedTable[,1])
     }
     
     utils::write.table(
-      bedTable, sep = "\t", file = paste0(workingDirectory,"/mutation_",uniqueId,".bed"),
+      bedTable, sep = "\t", file = paste0(workingDirectory,"/mutation_",
+                                          uniqueId,".bed"),
       row.names = FALSE,col.names = FALSE,quote = FALSE)
     cmd <- paste0(
       bedtoolsLocation," getfasta -fi ", genome,
@@ -264,43 +271,43 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     system(paste0("rm -f ",workingDirectory,"/mutation_",uniqueId,"*"))
     
     s <- fasta[seq(2,dim(fasta)[1],by = 2),1]
-    query@elementMetadata$seq <- s
+    mcols(query)$seq <- s
     
   }else{
     # need to +1 for BSgenomes sequence retreval 
     # ranges given are bedtools (legacy) 
-    bed@ranges@start <- as.integer(bed@ranges@start +1)
-    bed@ranges@width <- as.integer(bed@ranges@width -1)
+    start(ranges(bed)) <- start(ranges(bed)) +1
+    width(ranges(bed))  <- 528
     
     bed.seq <- Biostrings::getSeq(BSgenome, bed)
-    query@elementMetadata$seq <- as.character(bed.seq)
+    mcols(query)$seq <- as.character(bed.seq)
   }
   
   ##mutate at SNP location
   if (queryType == "SNP") {
     #location of SNP
-    loc <- 44 - query@elementMetadata$to_3prime
-    nt.ref <- as.character(query@elementMetadata$ref_allele)
-    nt.alt <- as.character(query@elementMetadata$alt_allele)
+    loc <- 44 - query$to_3prime
+    nt.ref <- as.character(query$ref_allele)
+    nt.alt <- as.character(query$alt_allele)
     
     #change to compliment if on negative strand
-    nt.ref[which(as.logical(query@strand == "-"))] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.ref[which(as.logical(query@strand == "-"))])))
-    nt.alt[which(query$strand == "-")] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.alt[which(as.logical(query@strand == "-"))])))
+    nt.ref[which(as.logical(strand(query) == "-"))] <-
+      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.ref[which(as.logical(strand(query) == "-"))])))
+    nt.alt[which(as.logical(strand(query) == "-"))] <-
+      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.alt[which(as.logical(strand(query) == "-"))])))
     
     #check ref allele
-    refAlleleCorrect <- substr(query@elementMetadata$seq, 251 + (loc),251 + (loc)) == nt.ref
+    refAlleleCorrect <- substr(query$seq, 251 + (loc),251 + (loc)) == nt.ref
     
     if (any(!refAlleleCorrect)) {
       rm <- which(refAlleleCorrect == FALSE)
-      if (all(refAlleleCorrect[which(as.logical(query@strand == "-"))] == FALSE) &
-          all(refAlleleCorrect[which(as.logical(query@strand == "+"))])) {
+      if (all(refAlleleCorrect[which(as.logical(strand(query) == "-"))] == FALSE) &
+          all(refAlleleCorrect[which(as.logical(strand(query) == "+"))])) {
         message("reference alleles are incorrect for all negative strand introns")
         message("please input alleles as positive strand sequences")
       }else{
         message("reference alleles do not match sequence for:")
-        message(paste(query@elementMetadata$id[rm], collapse = "\n"))
+        message(paste(query$id[rm], collapse = "\n"))
       }
       message("removing from analysis")
       query <- query[-rm]
@@ -311,13 +318,14 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   seqs <- vector()
   #from 44 to 18 (dist.2)
   for (i in 18:44) {
-    seqs <- append(seqs, substr(query@elementMetadata$seq, (i - 17),(i - 17) + 500))
+    seqs <- append(seqs, substr(query$seq, (i - 17),(i - 17) + 500))
   }
   
   if (queryType == "SNP") {
     #create mutated sequence
     s.mut <-
-      paste0(substr(query@elementMetadata$seq, 1,250 + (loc)), nt.alt, substr(query@elementMetadata$seq, 252 + (loc),528))
+      paste0(substr(query$seq, 1,250 + (loc)), nt.alt, 
+             substr(query$seq, 252 + (loc),528))
     
     seqs.mut <- vector()
     for (i in 18:44) {
@@ -327,55 +335,60 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     queryAllPoints <- do.call("c",as.list(rep(query, 27)))
     queryAllPoints <- do.call("c",as.list(rep(queryAllPoints, 2)))
     
-    queryAllPoints@elementMetadata$status <- c(rep("REF", length(seqs)),
+    mcols(queryAllPoints)$status <- c(rep("REF", length(seqs)),
                                                rep("ALT", length(seqs.mut)))
     
-    queryAllPoints@elementMetadata$seq <- c(seqs, seqs.mut)
-    queryAllPoints@elementMetadata$to_3prime_point <- rep(rep(44:18,each = length(query@elementMetadata$id)),2)
+    queryAllPoints$seq <- c(seqs, seqs.mut)
+    mcols(queryAllPoints)$to_3prime_point <- 
+      rep(rep(44:18,each = length(query$id)),2)
   }else{
     queryAllPoints <- do.call("c",as.list(rep(query, 27)))
-    queryAllPoints@elementMetadata$status <- rep("REF", length(seqs))
-    queryAllPoints@elementMetadata$seq <- seqs
-    queryAllPoints@elementMetadata$to_3prime_point <- rep(44:18,each = length(query@elementMetadata$seq))
+    mcols(queryAllPoints)$status <- rep("REF", length(seqs))
+    queryAllPoints$seq <- seqs
+    mcols(queryAllPoints)$to_3prime_point <- 
+      rep(44:18,each = length(query$seq))
   }
   
-  queryAllPoints@elementMetadata$to_5prime_point <- (queryAllPoints@elementMetadata$to_3prime + queryAllPoints@elementMetadata$to_5prime) -
-    queryAllPoints@elementMetadata$to_3prime_point
+  mcols(queryAllPoints)$to_5prime_point <- 
+    (queryAllPoints$to_3prime + queryAllPoints$to_5prime) -
+    queryAllPoints$to_3prime_point
   
-  testSite <- queryAllPoints@ranges@start
-  posStrand <- which(as.logical(queryAllPoints@strand == "+"))
-  negStrand <- which(as.logical(queryAllPoints@strand == "-"))
-  testSite[which(as.logical(queryAllPoints@strand == "+"))] <- (queryAllPoints@ranges@start + queryAllPoints@ranges@width -1)[which(as.logical(queryAllPoints@strand == "+"))]
-  testSite[posStrand] <- (testSite + queryAllPoints@elementMetadata$to_3prime - queryAllPoints@elementMetadata$to_3prime_point)[posStrand]
-  testSite[negStrand] <- (testSite - queryAllPoints@elementMetadata$to_3prime + queryAllPoints@elementMetadata$to_3prime_point)[negStrand]
-  queryAllPoints@elementMetadata$test_site <- testSite
+  testSite <- start(ranges(queryAllPoints))
+  posStrand <- which(as.logical(strand(queryAllPoints) == "+"))
+  negStrand <- which(as.logical(strand(queryAllPoints) == "-"))
+  testSite[posStrand] <- end(ranges(queryAllPoints))[posStrand]
+  testSite[posStrand] <- (testSite + queryAllPoints$to_3prime - 
+                            queryAllPoints$to_3prime_point)[posStrand]
+  testSite[negStrand] <- (testSite - queryAllPoints$to_3prime + 
+                            queryAllPoints$to_3prime_point)[negStrand]
+  mcols(queryAllPoints)$test_site <- testSite
   
   #get sequence identity at position -5 to +5 relative to testing point
-  queryAllPoints@elementMetadata$seq_pos0 <-
+  mcols(queryAllPoints)$seq_pos0 <-
     factor(substr(queryAllPoints$seq,251,251), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_pos1 <-
+  mcols(queryAllPoints)$seq_pos1 <-
     factor(substr(queryAllPoints$seq,252,252), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_pos2 <-
+  mcols(queryAllPoints)$seq_pos2 <-
     factor(substr(queryAllPoints$seq,253,253), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_pos3 <-
+  mcols(queryAllPoints)$seq_pos3 <-
     factor(substr(queryAllPoints$seq,254,254), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_pos4 <-
+  mcols(queryAllPoints)$seq_pos4 <-
     factor(substr(queryAllPoints$seq,255,255), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$ seq_pos5 <-
+  mcols(queryAllPoints)$ seq_pos5 <-
     factor(substr(queryAllPoints$seq,256,256), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_neg1 <-
+  mcols(queryAllPoints)$seq_neg1 <-
     factor(substr(queryAllPoints$seq,250,250), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_neg2 <-
+  mcols(queryAllPoints)$seq_neg2 <-
     factor(substr(queryAllPoints$seq,249,249), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_neg3 <-
+  mcols(queryAllPoints)$seq_neg3 <-
     factor(substr(queryAllPoints$seq,248,248), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_neg4 <-
+  mcols(queryAllPoints)$seq_neg4 <-
     factor(substr(queryAllPoints$seq,247,247), levels = c("A","C","G","T"))
-  queryAllPoints@elementMetadata$seq_neg5 <-
+  mcols(queryAllPoints)$seq_neg5 <-
     factor(substr(queryAllPoints$seq,246,246), levels = c("A","C","G","T"))
   
   #find canonical AG splice dinucleotides
-  f <- gregexpr("AG",substr(queryAllPoints@elementMetadata$seq, 252,501),perl = TRUE)
+  f <- gregexpr("AG",substr(queryAllPoints$seq, 252,501),perl = TRUE)
   
   if (useParallel) {
     cluster <- parallel::makeCluster(cores)
@@ -393,12 +406,14 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   colnames(canon) <-
     c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")
   
-  queryAllPoints@elementMetadata <- cbind(queryAllPoints@elementMetadata, canon)
-  queryAllPoints@elementMetadata$ppt_start <- unlist(lapply(pyra, "[[", 1))
-  queryAllPoints@elementMetadata$ppt_run_length <- unlist(lapply(pyra, "[[", 2))
+  mcols(queryAllPoints) <- cbind(mcols(queryAllPoints), canon)
+  mcols(queryAllPoints)$ppt_start <- unlist(lapply(pyra, "[[", 1))
+  mcols(queryAllPoints)$ppt_run_length <- unlist(lapply(pyra, "[[", 2))
   
-  queryAllPoints@elementMetadata$seq <- stringr::str_sub(queryAllPoints@elementMetadata$seq,251 + 
-                                                           (queryAllPoints@elementMetadata$to_3prime_point - 50),250 + queryAllPoints@elementMetadata$to_3prime_point)
+  mcols(queryAllPoints)$seq <- 
+    stringr::str_sub(queryAllPoints$seq, (251 + 
+                       queryAllPoints$to_3prime_point - 50),(250 + 
+    queryAllPoints$to_3prime_point))
 
   return(queryAllPoints)
 }
@@ -472,29 +487,34 @@ predictBranchpoints <- function(query, uniqueId = "test",
 
   #convert to data.frame for kernlab/caret
   
-  queryAttributes.forModel <- as.data.frame(queryAttributes@elementMetadata)
+  queryAttributes.forModel <- as.data.frame(mcols(queryAttributes))
   
   colNamesForDataFrame <- HCN_names[-1]
-  colNamesForDataFrame <- gsub("new_ID", "id", colNamesForDataFrame)
-  colNamesForDataFrame <- gsub("dist.1", "to_5prime_point", colNamesForDataFrame)
-  colNamesForDataFrame <- gsub("dist.2", "to_3prime_point", colNamesForDataFrame)
+  colNamesForDataFrame <- gsub("new_ID", "id", 
+                               colNamesForDataFrame)
+  colNamesForDataFrame <- gsub("dist.1", "to_5prime_point", 
+                               colNamesForDataFrame)
+  colNamesForDataFrame <- gsub("dist.2", "to_3prime_point", 
+                               colNamesForDataFrame)
   
   queryAttributes.forModel <- queryAttributes.forModel[,colNamesForDataFrame]
-  queryAttributes.forModel <- cbind(set="UNKNOWN", queryAttributes.forModel)
+  queryAttributes.forModel <- cbind(set = "UNKNOWN", queryAttributes.forModel)
   colnames(queryAttributes.forModel) <-  HCN_names
 
   #remove any rows with NA values
-  is_na <- apply(queryAttributes.forModel[,-c(1,2)], 2, is.na)
-  is_na_v <- apply(is_na,1, any)
-  rm <- which(is_na_v == TRUE)
+  isNA <- apply(queryAttributes.forModel[,-c(1,2)], 2, is.na)
+  isNAv <- apply(isNA,1, any)
+  rm <- which(isNAv == TRUE)
   if(length(rm) > 0){
     queryAttributes.forModel <- queryAttributes.forModel[-rm,]
     queryAttributes <- queryAttributes[-rm,]
   }
 
   #convert sequences to dummy vars
-  queryAttributes.dummies <- predict(dummies, newdata=queryAttributes.forModel[,-2])
-  queryAttributes.forModel <- cbind(set=queryAttributes.forModel$set, queryAttributes.dummies)
+  queryAttributes.dummies <- 
+    predict(dummies, newdata = queryAttributes.forModel[,-2])
+  queryAttributes.forModel <- 
+    cbind(set = queryAttributes.forModel$set, queryAttributes.dummies)
   queryAttributes.forModel <- apply(queryAttributes.forModel[,-1],2,as.numeric)
 
   #make sure all dummy vars are accounted for
@@ -505,46 +525,50 @@ predictBranchpoints <- function(query, uniqueId = "test",
                                    ncol=length(newColNames)))
     colnames(dfAdd) <- newColNames
     queryAttributes.forModel <- cbind(queryAttributes.forModel, dfAdd)
-    queryAttributes.forModel <- queryAttributes.forModel[,match(names(preProcValues$mean),
-                                                                  colnames(queryAttributes.forModel))]
+    queryAttributes.forModel <- 
+      queryAttributes.forModel[,match(names(preProcValues$mean),
+                                      colnames(queryAttributes.forModel))]
   }
 
   #pre-process values
   queryAttributes.forModel <- predict(preProcValues, queryAttributes.forModel)
   queryAttributes.forModel <- cbind(queryAttributes.forModel, Class="UNKNOWN")
-  queryAttributes.forModel <- as.data.frame(queryAttributes.forModel, stringsAsFactors=FALSE)
+  queryAttributes.forModel <- 
+    as.data.frame(queryAttributes.forModel, stringsAsFactors=FALSE)
   queryAttributes.forModel$Class <- as.factor(queryAttributes.forModel$Class)
   for(n in 1:(length(colnames(queryAttributes.forModel)) -1)){
     queryAttributes.forModel[,n] <- as.numeric(queryAttributes.forModel[,n])
   }
 
   #SVM prediction feature
-  newFeat <- kernlab::predict(branchpointer.svm,queryAttributes.forModel, "probabilities")
+  newFeat <- kernlab::predict(branchpointer.svm, 
+                              queryAttributes.forModel, "probabilities")
   newFeat <- newFeat[,1]
 
   queryAttributes.forModel <- cbind(queryAttributes.forModel, newFeat)
 
   #gbm prediction
-  p <- predict(object=branchpointer.gbm, queryAttributes.forModel[,predictorNames],"prob")
+  p <- predict(object = branchpointer.gbm, 
+               queryAttributes.forModel[,predictorNames],"prob")
 
   #reconfigure
   
-  queryAttributes@elementMetadata$branchpoint_prob <- p[,1]
+  mcols(queryAttributes)$branchpoint_prob <- p[,1]
 
   #### U2 binding energy###
-  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(queryAttributes@elementMetadata))
+  m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(mcols(queryAttributes)))
 
   if(useParallel){
     cluster <- parallel::makeCluster(cores)
-    U2Eightmers <- parallel::parApply(cluster,as.data.frame(queryAttributes@elementMetadata[,m]),1,paste, collapse="")
+    U2Eightmers <- parallel::parApply(cluster,as.data.frame(mcols(queryAttributes)[,m]),1,paste, collapse="")
     parallel::stopCluster(cluster)
   }else{
     #needs as.data.frame to treat rows as vectors
-    U2Eightmers <- apply(as.data.frame(queryAttributes@elementMetadata[,m]),1,paste, collapse="")
+    U2Eightmers <- apply(as.data.frame(mcols(queryAttributes)[,m]),1,paste, collapse="")
   }
 
   x <- match(U2Eightmers, U2_binding_df$eightmers)
-  queryAttributes@elementMetadata$U2_binding_energy <- U2_binding_df$energy[x]
+  mcols(queryAttributes)$U2_binding_energy <- U2_binding_df$energy[x]
 
 
   #branchpointPred$id <- stringr::str_sub(branchpointPred$id,1,-8)

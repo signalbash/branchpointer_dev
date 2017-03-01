@@ -31,47 +31,40 @@ makeRegions <- function(id, idType, exons) {
 
 
   if (!noType) {
-    x <- which(colnames(exons@elementMetadata) == idType)
-    y <- grep(id, exons@elementMetadata[,x])
+    x <- which(colnames(mcols(exons)) == idType)
+    y <- grep(id, mcols(exons)[,x])
   }else{
     y <- vector()
   }
 
   #go through possible columns if no matches found
   if (length(y) == 0 | noType) {
-
     idType <- validTypes[1]
-    x <- which(colnames(exons@elementMetadata) == idType)
-    y <- y <- grep(id, exons@elementMetadata[,x])
-
+    x <- which(colnames(mcols(exons)) == idType)
+    y <- y <- grep(id, mcols(exons)[,x])
+    
     if (length(y) == 0) {
-
       idType <- validTypes[2]
-      x <- which(colnames(exons@elementMetadata) == idType)
-      y <- y <- grep(id, exons@elementMetadata[,x])
-
+      x <- which(colnames(mcols(exons)) == idType)
+      y <- y <- grep(id, mcols(exons)[,x])
     }
 
     if (length(y) == 0) {
-
       idType <- validTypes[3]
-      x <- which(colnames(exons@elementMetadata) == idType)
-      y <- y <- grep(id, exons@elementMetadata[,x])
-
+      x <- which(colnames(mcols(exons)) == idType)
+      y <- y <- grep(id, mcols(exons)[,x])
     }
 
     if (length(y) == 0) {
-
       stop(paste0("cannot find ", id," in the exon annotation"))
-
     }
 
   }
 
   #use a subset of the exon annotation for faster processing
   if (idType != "gene_id") {
-    gene_id <- exons@elementMetadata$gene_id[y[1]]
-    y2 <- which(!is.na(match(exons@elementMetadata$gene_id,gene_id)))
+    gene_id <- exons$gene_id[y[1]]
+    y2 <- which(!is.na(match(exons$gene_id,gene_id)))
   }else{
     y2 <- y
   }
@@ -79,17 +72,19 @@ makeRegions <- function(id, idType, exons) {
   exons.subset <- exons[y]
   
   #by definition first exons shouldn' have branchpoints
-  keep <- which(exons.subset@elementMetadata$exon_number > 1)
+  keep <- which(exons.subset$exon_number > 1)
 
-  if (as.logical(exons.subset@strand[1] == "+")) {
-    windowStarts <- (exons.subset@ranges@start - 50)[keep]
+  if (as.logical(strand(exons.subset)[1] == "+")) {
+    windowStarts <- (start(ranges(exons.subset)) - 50)[keep]
   }else{
-    windowStarts <- (exons.subset@ranges@start + exons.subset@ranges@width -1 + 10)[keep]
+    windowStarts <- (end(ranges(exons.subset)) + 10)[keep]
   }
 
   window <- exons.subset[keep]
+
+  # giving errors trying to set as start(ranges(window))
   window@ranges@start <- as.integer(windowStarts)
-  window@ranges@width[1:length(windowStarts)] <- as.integer(41)
+  width(ranges(window)) <- 41
 
   return(getQueryLoc(window,queryType = "region",exons = exons[y2]))
 

@@ -51,17 +51,17 @@ snpToQuery <- function(refSNP, mart.snp){
                           alt_allele=stringr::str_sub(snpInfo$allele,3,3))
 
   #check for unstranded queries & replace with positive & negative
-  unstranded <- which(as.logical(queryGRanges@strand == "*"))
+  unstranded <- which(as.logical(strand(queryGRanges) == "*"))
   if(length(unstranded)>0){
     queryGRanges.pos <- queryGRanges[unstranded]
-    queryGRanges.pos@elementMetadata$id <- 
-      paste0(queryGRanges.pos@elementMetadata$id, "_pos")
-    queryGRanges.pos@strand[1:length(unstranded)] <- "+"
+    queryGRanges.pos$id <- 
+      paste0(queryGRanges.pos$id, "_pos")
+    strand(queryGRanges.pos) <- "+"
     
     queryGRanges.neg <- queryGRanges[unstranded]
-    queryGRanges.neg@elementMetadata$id <- 
-      paste0(queryGRanges.neg@elementMetadata$id, "_neg")
-    queryGRanges.neg@strand[1:length(unstranded)] <- "-"
+    queryGRanges.neg$id <- 
+      paste0(queryGRanges.neg$id, "_neg")
+    strand(queryGRanges.neg) <- "-"
     
     queryGRanges <- do.call("c", list(queryGRanges[-unstranded],
                                       queryGRanges.pos,
@@ -69,10 +69,10 @@ snpToQuery <- function(refSNP, mart.snp){
     }
 
   #check for duplicated query ids
-  if(any(duplicated(queryGRanges@elementMetadata$id))){
-    message(paste0(length(which(duplicated(queryGRanges@elementMetadata$id)))," query ids are not unique"))
+  if(any(duplicated(queryGRanges$id))){
+    message(paste0(length(which(duplicated(queryGRanges$id)))," query ids are not unique"))
     message("Check output for new names or rename")
-    queryGRanges@elementMetadata$id <- make.names(queryGRanges@elementMetadata$id, unique=TRUE)
+    queryGRanges$id <- make.names(queryGRanges$id, unique=TRUE)
   }
 
   return(queryGRanges)

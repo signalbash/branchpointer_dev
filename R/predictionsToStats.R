@@ -33,25 +33,25 @@ predictionsToStats <- function(query,
                                probabilityCutoff = 0.5,
                                probabilityChange = 0.2){
 
-  snpIDs <- query@elementMetadata$id
+  snpIDs <- query$id
   
-  query@elementMetadata$BP_num_REF = NA
-  query@elementMetadata$BP_num_ALT = NA
-  query@elementMetadata$deleted_n = NA
-  query@elementMetadata$created_n = NA
-  query@elementMetadata$dist_to_BP_REF = NA
-  query@elementMetadata$dist_to_BP_ALT = NA
-  query@elementMetadata$max_prob_REF = NA
-  query@elementMetadata$max_prob_ALT = NA
-  query@elementMetadata$max_U2_REF = NA
-  query@elementMetadata$max_U2_ALT = NA
+  mcols(query)$BP_num_REF = NA
+  mcols(query)$BP_num_ALT = NA
+  mcols(query)$deleted_n = NA
+  mcols(query)$created_n = NA
+  mcols(query)$dist_to_BP_REF = NA
+  mcols(query)$dist_to_BP_ALT = NA
+  mcols(query)$max_prob_REF = NA
+  mcols(query)$max_prob_ALT = NA
+  mcols(query)$max_U2_REF = NA
+  mcols(query)$max_U2_ALT = NA
 
     for(z in seq(along = snpIDs)){
       #match snp id to predictions
-      predictions.snp <- predictions[predictions@elementMetadata$id == snpIDs[z]]
+      predictions.snp <- predictions[predictions$id == snpIDs[z]]
 
       #match snp id to query attributes
-      queryIndex <- which(query@elementMetadata$id == snpIDs[z])
+      queryIndex <- which(query$id == snpIDs[z])
 
       #find location of the SNP relative to the annotated 3'exon
        #elementMeta$to_3prime
@@ -59,56 +59,58 @@ predictionsToStats <- function(query,
       # find location of the SNP relative to the predicted BPs
       # in reference and alternative sequences
       
-      branchpointIndex.ref <- which(predictions.snp@elementMetadata$status == "REF" & 
-                                      predictions.snp@elementMetadata$branchpoint_prob >= probabilityCutoff)
+      branchpointIndex.ref <- which(predictions.snp$status == "REF" & 
+                                      predictions.snp$branchpoint_prob >= probabilityCutoff)
       
-      diffs.ref <- predictions.snp@elementMetadata$to_3prime[branchpointIndex.ref] - 
-        predictions.snp@elementMetadata$to_3prime_point[branchpointIndex.ref] 
-      query@elementMetadata$BP_num_REF[queryIndex] <- length(diffs.ref)
+      diffs.ref <- predictions.snp$to_3prime[branchpointIndex.ref] - 
+        predictions.snp$to_3prime_point[branchpointIndex.ref] 
+      query$BP_num_REF[queryIndex] <- length(diffs.ref)
       
       if(length(diffs.ref) > 0){
-        query@elementMetadata$dist_to_BP_REF[queryIndex] <- diffs.ref[which.min(abs(diffs.ref))]
+        query$dist_to_BP_REF[queryIndex] <- diffs.ref[which.min(abs(diffs.ref))]
       }
 
-      branchpointIndex.alt <- which(predictions.snp@elementMetadata$status == "ALT" & 
-                                      predictions.snp@elementMetadata$branchpoint_prob >= probabilityCutoff)
+      branchpointIndex.alt <- which(predictions.snp$status == "ALT" & 
+                                      predictions.snp$branchpoint_prob >= probabilityCutoff)
       
-      diffs.alt <- predictions.snp@elementMetadata$to_3prime[branchpointIndex.alt] - 
-        predictions.snp@elementMetadata$to_3prime_point[branchpointIndex.alt] 
-      query@elementMetadata$BP_num_ALT[queryIndex] <- length(diffs.alt)
+      diffs.alt <- predictions.snp$to_3prime[branchpointIndex.alt] - 
+        predictions.snp$to_3prime_point[branchpointIndex.alt] 
+      query$BP_num_ALT[queryIndex] <- length(diffs.alt)
       
       if(length(diffs.alt) > 0){
-        query@elementMetadata$dist_to_BP_ALT[queryIndex] <- diffs.alt[which.min(abs(diffs.alt))]
+        query$dist_to_BP_ALT[queryIndex] <- diffs.alt[which.min(abs(diffs.alt))]
       }
           
-      query@elementMetadata$max_prob_REF[queryIndex] <- 
-        max(predictions.snp@elementMetadata$branchpoint_prob[predictions.snp@elementMetadata$status == "REF"])
-      query@elementMetadata$max_prob_ALT[queryIndex] <- 
-        max(predictions.snp@elementMetadata$branchpoint_prob[predictions.snp@elementMetadata$status == "ALT"])
+      query$max_prob_REF[queryIndex] <- 
+        max(predictions.snp$branchpoint_prob[predictions.snp$status == "REF"])
+      query$max_prob_ALT[queryIndex] <- 
+        max(predictions.snp$branchpoint_prob[predictions.snp$status == "ALT"])
       
       # maximum U2 binding energy of all branchpoint sites
       # above the probability cutoff
       if(length(diffs.ref) > 0){
-        query@elementMetadata$max_U2_REF[queryIndex] <- 
-          max(predictions.snp@elementMetadata$U2_binding_energy[branchpointIndex.ref])
+        query$max_U2_REF[queryIndex] <- 
+          max(predictions.snp$U2_binding_energy[branchpointIndex.ref])
       }
       
       if(length(diffs.alt) > 0){
-        query@elementMetadata$max_U2_ALT[queryIndex] <- 
-          max(predictions.snp@elementMetadata$U2_binding_energy[branchpointIndex.alt])
+        query$max_U2_ALT[queryIndex] <- 
+          max(predictions.snp$U2_binding_energy[branchpointIndex.alt])
       }
 
       # all sites (ref & alt) called as branchpoints
-      branchpointLocs <- unique(predictions.snp@elementMetadata$to_3prime_point[c(branchpointIndex.ref, branchpointIndex.alt)])
+      branchpointLocs <- unique(predictions.snp$to_3prime_point[c(branchpointIndex.ref, branchpointIndex.alt)])
 
       #probabiltiy scores for ref/alt at all BP sites
-      prob.ref <- predictions.snp@elementMetadata$branchpoint_prob[which(predictions.snp@elementMetadata$status == "REF" & predictions.snp@elementMetadata$to_3prime_point %in% branchpointLocs)]
-      prob.alt <- predictions.snp@elementMetadata$branchpoint_prob[which(predictions.snp@elementMetadata$status == "ALT" & predictions.snp@elementMetadata$to_3prime_point %in% branchpointLocs)]
+      prob.ref <- predictions.snp$branchpoint_prob[which(predictions.snp$status == "REF" & 
+                                                           predictions.snp$to_3prime_point %in% branchpointLocs)]
+      prob.alt <- predictions.snp$branchpoint_prob[which(predictions.snp$status == "ALT" & 
+                                                           predictions.snp$to_3prime_point %in% branchpointLocs)]
 
       #change must be of sufficient magnitude to be called as created or deleted
-      query@elementMetadata$deleted_n[queryIndex] <- length(which((prob.ref - prob.alt) > probabilityChange &
+      query$deleted_n[queryIndex] <- length(which((prob.ref - prob.alt) > probabilityChange &
                                                           (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
-      query@elementMetadata$created_n[queryIndex] <- length(which((prob.ref - prob.alt) < (probabilityChange * -1) &
+      query$created_n[queryIndex] <- length(which((prob.ref - prob.alt) < (probabilityChange * -1) &
                                                           (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
     }
   
