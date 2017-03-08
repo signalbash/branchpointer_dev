@@ -34,19 +34,19 @@ makeRegions <- function(id, idType, exons) {
     x <- which(colnames(mcols(exons)) == idType)
     y <- grep(id, mcols(exons)[,x])
   }else{
-    y <- vector()
+    y <- NA
   }
 
   #go through possible columns if no matches found
-  if (length(y) == 0 | noType) {
+  if (is.na(y) | noType) {
     idType <- validTypes[1]
     x <- which(colnames(mcols(exons)) == idType)
-    y <- y <- grep(id, mcols(exons)[,x])
-    
+    y <- grep(id, mcols(exons)[,x])
+
     if (length(y) == 0) {
       idType <- validTypes[2]
       x <- which(colnames(mcols(exons)) == idType)
-      y <- y <- grep(id, mcols(exons)[,x])
+      y <- grep(id, mcols(exons)[,x])
     }
 
     if (length(y) == 0) {
@@ -70,7 +70,7 @@ makeRegions <- function(id, idType, exons) {
   }
 
   exons.subset <- exons[y]
-  
+
   #by definition first exons shouldn' have branchpoints
   keep <- which(exons.subset$exon_number > 1)
 
