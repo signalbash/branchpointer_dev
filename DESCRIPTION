@@ -1,7 +1,7 @@
 Package: branchpointer
 Type: Package
 Title: Prediction of intronic splicing branchpoints
-Version: 0.99.9
+Version: 0.99.10
 Date: 2017-03-01
 Author: Beth Signal
 Maintainer: Beth Signal <b.signal@garvan.org.au>
@@ -10,7 +10,7 @@ License: BSD_3_clause + file LICENSE
 LazyData: TRUE
 Depends:
     caret,
-    R(>= 3.4)
+    R(>= 3.3)
 Imports:
     plyr,
     kernlab,

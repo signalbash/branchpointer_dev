@@ -28,3 +28,6 @@ Naming conventions of variables is consistent.
 
 Version 0.99.8-0.99.9
 Updated functions to use GRanges accessor functions
+
+Version 0.99.10
+Updated functions
