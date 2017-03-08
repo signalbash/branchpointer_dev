@@ -22,13 +22,13 @@ gtfToExons <- function(gtf){
   gtf.rtrack <- gtf.rtrack[gtf.rtrack$type=="exon"]
 
   #change "biotype" to "type" in GTFs from Ensembl
-  if(any(grepl("biotype", colnames(mcols(gtf.rtrack))))){
+  if(any(colnames(mcols(gtf.rtrack)) == "gene_biotype")){
     colnames(mcols(gtf.rtrack)) <- gsub("biotype",
                                               "type",
                                         colnames(mcols(gtf.rtrack)))
   }
 
-  if(all(!grepl("exon", colnames(mcols(gtf.rtrack))))){
+  if(!all(c("exon_id", "exon_number") %in% (colnames(mcols(gtf.rtrack))))){
     mcols(gtf.rtrack)$exon_number <- NA
     gtf.rtrack$exon_id <- gtf.rtrack$transcript_id
 
@@ -49,6 +49,6 @@ gtfToExons <- function(gtf){
   mcols(exons) <- mcols(exons)[,c("gene_id","gene_type",
                                  "transcript_id","transcript_type",
                                  "exon_id","exon_number")]
-  
+
   return(exons)
 }
