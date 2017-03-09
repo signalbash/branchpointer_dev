@@ -22,7 +22,7 @@ gtfToExons <- function(gtf){
   gtf.rtrack <- gtf.rtrack[gtf.rtrack$type=="exon"]
 
   #change "biotype" to "type" in GTFs from Ensembl
-  if(any(colnames(mcols(gtf.rtrack)) == "gene_biotype")){
+  if("gene_biotype" %in% colnames(mcols(gtf.rtrack))){
     colnames(mcols(gtf.rtrack)) <- gsub("biotype",
                                               "type",
                                         colnames(mcols(gtf.rtrack)))
