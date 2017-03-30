@@ -242,14 +242,11 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
     #adjust query location to only cover the 27nt window
     move <- 18 - nearestExons$to_3prime
     
-    nearestExons <- nearestExons
-
     #negStrand -- move start
     negStrand <- which(as.logical(strand(nearestExons) == "-"))
     start(ranges(nearestExons))[negStrand] <- 
       start(ranges(nearestExons))[negStrand] + move[negStrand]
-      width(ranges(nearestExons)) <- width(ranges(nearestExons)) - move
-    
+
     #posStrand
     posStrand <- which(as.logical(strand(nearestExons) == "+"))
     end <- end(ranges(nearestExons))[posStrand]
