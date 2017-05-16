@@ -85,6 +85,8 @@ makeRegions <- function(id, idType, exons) {
   # giving errors trying to set as start(ranges(window))
   window@ranges@start <- as.integer(windowStarts)
   width(ranges(window)) <- 41
+  
+  window@elementMetadata$id <- window@elementMetadata$exon_id
 
   return(getQueryLoc(window,queryType = "region",exons = exons[y2]))
 
