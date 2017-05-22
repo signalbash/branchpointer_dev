@@ -88,6 +88,9 @@ makeRegions <- function(id, idType, exons) {
   
   window@elementMetadata$id <- window@elementMetadata$exon_id
 
-  return(getQueryLoc(window,queryType = "region",exons = exons[y2]))
+  if(length(window) > 0){
+    return(getQueryLoc(window,queryType = "region",exons = exons[y2]))
+  }
 
 }
+
