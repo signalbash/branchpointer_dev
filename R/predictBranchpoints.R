@@ -201,7 +201,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
                                    useParallel = FALSE,
                                    cores = 1,
                                    rmChr = FALSE) {
-
+  
   if(is.na(genome) & is.null(BSgenome)){
     stop("please specify a genome .fa file for sequence extraction or specify a BSgenome object")
   }
@@ -266,22 +266,53 @@ getBranchpointSequence <- function(query, uniqueId = "test",
       " -bed ",workingDirectory,"/mutation_",uniqueId,".bed -fo ",
       workingDirectory,"/mutation_",uniqueId,".fa -name -s")
     system(cmd)
-    fasta <-
-      data.table::fread(paste0(workingDirectory,"/mutation_",uniqueId,".fa"),
-                        header = FALSE, stringsAsFactors = FALSE)
-    fasta <- as.data.frame(fasta)
-    system(paste0("rm -f ",workingDirectory,"/mutation_",uniqueId,"*"))
-
-    s <- fasta[seq(2,dim(fasta)[1],by = 2),1]
-    mcols(query)$seq <- s
+    
+    info <- file.info(paste0(workingDirectory,"/mutation_",uniqueId,".fa"))
+    if(info$size > 0){
+      fasta <-
+        data.table::fread(paste0(workingDirectory,"/mutation_",uniqueId,".fa"),
+                          header = FALSE, stringsAsFactors = FALSE)
+      fasta <- as.data.frame(fasta)
+      system(paste0("rm -f ",workingDirectory,"/mutation_",uniqueId,"*"))
+  
+      s <- fasta[seq(2,dim(fasta)[1],by = 2),1]
+      mcols(query)$seq <- s
+    }else{
+      stop("cannot retrieve fa sequence, please check your exon annotation and genome .fa")
+    }
 
   }else{
     # need to +1 for BSgenomes sequence retreval
     # ranges given are bedtools (legacy)
     start(ranges(bed)) <- start(ranges(bed)) +1
     width(ranges(bed))  <- 528
-
-    bed.seq <- Biostrings::getSeq(BSgenome, bed)
+    
+    # check if chromosomes need to renamed
+    seqlevels.genome <- GenomeInfoDb::seqlevels(BSgenome)
+    seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
+    
+    # used chromosomes 
+    seqnames.bed <- as.character(GenomeInfoDb::seqnames(bed))
+    
+    if(!(all(seqnames.bed %in% seqlevels.genome))){
+      
+      # try adding/removing chr from bed
+      if(!all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")){
+        seqlevels(bed) <- paste0("chr", seqlevels.bed)
+      }else if(all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")){
+        seqlevels(bed) <- gsub("chr", "", seqlevels.bed)
+      }
+      
+      seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
+      seqnames.bed <- as.character(GenomeInfoDb::seqnames(bed))
+      
+      # if that doesn't fix the issue, break
+      if(!(all(seqnames.bed %in% seqlevels.genome))){
+        stop("Chromosome names of query and genome do not match")
+      }
+    }
+    
+    bed.seq <- suppressWarnings(Biostrings::getSeq(BSgenome, bed))
     mcols(query)$seq <- as.character(bed.seq)
   }
 
