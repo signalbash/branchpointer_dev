@@ -4,7 +4,14 @@
 #' Reformats alleles so each query has only one alternative allele
 #' @param refSNP Vector of refsnp ids
 #' @param mart.snp biomaRt mart object specifying the BioMart database and dataset to be used
-#' @return formatted SNP query data.frame
+#' @param exons GRanges containing exon co-ordinates.
+#' Should be produced by gtfToExons()
+#' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
+#' @param filter remove SNP queries prior to finding finding nearest exons?
+#' @param useParallel use parallelisation to speed up code?
+#' (reccomended for > 500 query entries)
+#' @param cores number of cores to use in parallelisation (default = \code{1})
+#' @return formatted SNP query GRanges
 #' @export
 #' @import biomaRt
 #' @import GenomicRanges
@@ -12,11 +19,15 @@
 #' @importFrom S4Vectors Rle
 #' @importFrom IRanges IRanges
 #' @examples
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
+#' 
 #' mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
-#' query <- snpToQuery("rs17000647", mart.snp)
+#' query <- snpToQuery("rs17000647", mart.snp, exons)
 #' @author Beth Signal
 
-snpToQuery <- function(refSNP, mart.snp){
+snpToQuery <- function(refSNP, mart.snp,exons,maxDist=50, filter=TRUE, 
+                       useParallel=FALSE, cores=1){
   snpInfo <- biomaRt::getBM(attributes = c("refsnp_id",'refsnp_source', "chr_name",
                                    "chrom_start", "allele"),
                     filters = "snp_filter", values = refSNP, mart = mart.snp)
@@ -74,7 +85,12 @@ snpToQuery <- function(refSNP, mart.snp){
     message("Check output for new names or rename")
     queryGRanges$id <- make.names(queryGRanges$id, unique=TRUE)
   }
-
-  return(queryGRanges)
+  
+  #find 3'/5'exons
+  if(length(queryGRanges) > 0){
+    queryGRanges.loc <- getQueryLoc(queryGRanges, queryType="SNP", maxDist = maxDist, filter = filter,
+                                    exons = exons, useParallel = useParallel, cores = cores)
+    return(queryGRanges.loc)
+  }
 
 }

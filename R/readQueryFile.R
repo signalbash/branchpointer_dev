@@ -7,7 +7,14 @@
 #' For intronic regions should be in the format: region id, chromosome name, region start, region id, strand.
 #' For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)
 #' @param queryType type of query file (\code{"SNP"} or \code{"region"})
-#' @return data.frame with formatted query
+#' @param exons GRanges containing exon co-ordinates.
+#' Should be produced by gtfToExons()
+#' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
+#' @param filter remove SNP queries prior to finding finding nearest exons.
+#' @param useParallel use parallelisation to speed up code?
+#' (reccomended for > 500 query entries)
+#' @param cores number of cores to use in parallelisation (default = \code{1})
+#' @return Formatted query GRanges
 #' @export
 #' @import GenomicRanges
 #' @importFrom data.table fread
@@ -15,14 +22,18 @@
 #' @importFrom S4Vectors Rle
 #' @importFrom IRanges IRanges
 #' @examples
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' exons <- gtfToExons(smallExons)
+#' 
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP")
+#' query <- readQueryFile(querySNP,queryType = "SNP", exons)
 #'
 #' queryIntron <- system.file("extdata","intron_example.txt", package = "branchpointer")
-#' query <- readQueryFile(queryIntron,queryType = "region")
+#' query <- readQueryFile(queryIntron,queryType = "region", exons)
 #' @author Beth Signal
 
-readQueryFile <- function(queryFile, queryType){
+readQueryFile <- function(queryFile, queryType,exons, maxDist=50, filter=TRUE, 
+                          useParallel=FALSE, cores=1){
 
   if(missing(queryType)){
     queryTest <- data.table::fread(
@@ -100,6 +111,13 @@ readQueryFile <- function(queryFile, queryType){
       message("Check output for new names or rename")
       query$id = make.names(query$id, unique = TRUE)
     }
-    return(queryGRanges)
+    
+    #find 3'/5'exons
+    if(length(queryGRanges) > 0){
+      queryGRanges.loc <- getQueryLoc(queryGRanges, queryType, maxDist = maxDist, filter = filter,
+                                    exons = exons, useParallel = useParallel, cores = cores)
+      return(queryGRanges.loc)
+    }
+    
   }
 }
