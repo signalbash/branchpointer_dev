@@ -70,28 +70,47 @@ getExonDists <- function(queryLine, exons, queryType){
     width(ranges(queryLine2)) <- 1
   }
   
-  # follow to 5'
-  f <- GenomicRanges::follow(queryLine2, exons.subset)
-  if(length(f) > 0){
-    gene5 <- exons.subset$gene_id[f]
-    exon5 <- exons.subset$exon_id[f]
-    to5prime <- GenomicRanges::distance(queryLine2,exons.subset[f]) + 1
+  # follow to 5' in same gene annotation
+  sameGeneIndex <- which(mcols(exons.subset)$gene_id == 
+                        mcols(queryLine2)$gene_id)
+  f <- GenomicRanges::follow(queryLine2, 
+                             exons.subset[sameGeneIndex])
+  if(length(f) > 0 & !is.na(f[1])){
+    gene5 <- exons.subset$gene_id[sameGeneIndex][f]
+    exon5 <- exons.subset$exon_id[sameGeneIndex][f]
+    to5prime <- GenomicRanges::distance(queryLine2,exons.subset[sameGeneIndex][f]) + 1
   }else{
-    gene5 <- NA
-    exon5 <- NA
-    to5prime <- NA
+    f <- GenomicRanges::follow(queryLine2, 
+                               exons.subset)
+    if(length(f) > 0 & !is.na(f[1])){
+      gene5 <- exons.subset$gene_id[f]
+      exon5 <- exons.subset$exon_id[f]
+      to5prime <- GenomicRanges::distance(queryLine2,exons.subset[f]) + 1
+    }else{
+      gene5 <- NA
+      exon5 <- NA
+      to5prime <- NA
+    }
   }
   
   # preceed to 3'
-  p <- GenomicRanges::precede(queryLine2, exons.subset)
-  if(length(p) > 0){
-    gene3 <- exons.subset$gene_id[p]
-    exon3 <- exons.subset$exon_id[p]
-    to3prime <- GenomicRanges::distance(queryLine2,exons.subset[p]) + 1
+  p <- GenomicRanges::precede(queryLine2, exons.subset[sameGeneIndex])
+  if(length(p) > 0 & !is.na(p)[1]){
+    gene3 <- exons.subset$gene_id[sameGeneIndex][p]
+    exon3 <- exons.subset$exon_id[sameGeneIndex][p]
+    to3prime <- GenomicRanges::distance(queryLine2,exons.subset[sameGeneIndex][p]) + 1
   }else{
-    gene3 <- NA
-    exon3 <- NA
-    to3prime <- NA
+    p <- GenomicRanges::precede(queryLine2, 
+                               exons.subset)
+    if(length(p) > 0 & !is.na(p[1])){
+      gene3 <- exons.subset$gene_id[p]
+      exon3 <- exons.subset$exon_id[p]
+      to3prime <- GenomicRanges::distance(queryLine2,exons.subset[p]) + 1
+    }else{
+      gene3 <- NA
+      exon3 <- NA
+      to3prime <- NA
+    }
   }
   
   sameGene <- gene3 == gene5
@@ -178,7 +197,7 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
 
   if(useParallel){
     cluster <- makeCluster(cores)
-    nearestExons <- parApply(cluster,query,1,getExonDists,exons, queryType)
+    nearestExons <- parLapply(cluster,query,getExonDists,exons, queryType)
     stopCluster(cluster)
   }else{
     nearestExons <- lapply(query,getExonDists,exons,queryType)
@@ -232,7 +251,7 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
     #get exon distances for re-aligned windows
     if(useParallel){
       cluster <- makeCluster(cores)
-      nearestExons <- parApply(cluster,query,1,getExonDists,exons,queryType)
+      nearestExons <- parLapply(cluster,query,getExonDists,exons,queryType)
       stopCluster(cluster)
     }else{
       nearestExons <- lapply(nearestExons,getExonDists,exons,queryType)
@@ -243,7 +262,7 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
     move <- 18 - nearestExons$to_3prime
     
     #negStrand -- move start
-    negStrand <- which(as.logical(strand(nearestExons) == "-"))
+    negStrand <- which(as.logical(GenomicRanges::strand(nearestExons) == "-"))
     start(ranges(nearestExons))[negStrand] <- 
       start(ranges(nearestExons))[negStrand] + move[negStrand]
 
