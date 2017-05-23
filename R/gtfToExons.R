@@ -49,6 +49,8 @@ gtfToExons <- function(gtf){
   mcols(exons) <- mcols(exons)[,c("gene_id","gene_type",
                                  "transcript_id","transcript_type",
                                  "exon_id","exon_number")]
+  # close connections
+  gc()
 
   return(exons)
 }
