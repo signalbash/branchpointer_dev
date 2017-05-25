@@ -425,13 +425,20 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   #find canonical AG splice dinucleotides
   f <- gregexpr("AG",substr(queryAllPoints$seq, 252,501),perl = TRUE)
 
-  if (useParallel) {
+  if (useParallel & length(queryAllPoints) > 20 & length(queryAllPoints) <= 50) {
+    cluster <- parallel::makeCluster(cores)
+    canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
+    parallel::stopCluster(cluster)
+  }else if(useParallel & length(queryAllPoints) > 50){
     cluster <- parallel::makeCluster(cores)
     canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
     pyra <-
       parallel::parLapply(cluster,queryAllPoints, getPPT)
     parallel::stopCluster(cluster)
   }else{
+    if(length(queryAllPoints) > 50){
+      message("For this query size set useParallel = TRUE to speed up computations...")
+    }
     canonHits <- lapply(f, getCanonical3SS)
     pyra <- lapply(queryAllPoints, getPPT)
   }
@@ -592,19 +599,10 @@ predictBranchpoints <- function(query, uniqueId = "test",
 
   #### U2 binding energy###
   m <- match(colnames(U2_binding_df)[-c(1:3)],colnames(mcols(queryAttributes)))
-
-  if(useParallel){
-    cluster <- parallel::makeCluster(cores)
-    U2Eightmers <- parallel::parApply(cluster,as.data.frame(mcols(queryAttributes)[,m]),1,paste, collapse="")
-    parallel::stopCluster(cluster)
-  }else{
-    #needs as.data.frame to treat rows as vectors
-    U2Eightmers <- apply(as.data.frame(mcols(queryAttributes)[,m]),1,paste, collapse="")
-  }
-
+  U2Eightmers <- do.call(paste0, as.data.frame(mcols(queryAttributes)[,m]))
+  
   x <- match(U2Eightmers, U2_binding_df$eightmers)
   mcols(queryAttributes)$U2_binding_energy <- U2_binding_df$energy[x]
-
 
   #branchpointPred$id <- stringr::str_sub(branchpointPred$id,1,-8)
   #branchpointPred <- branchpointPred[order(branchpointPred[,1], branchpointPred[,5], branchpointPred[,4]),]
