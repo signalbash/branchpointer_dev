@@ -200,7 +200,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
                                    BSgenome = NULL,
                                    useParallel = FALSE,
                                    cores = 1,
-                                   rmChr = FALSE) {
+                                   rmChr = FALSE, flexibleParallel = TRUE) {
   
   if(is.na(genome) & is.null(BSgenome)){
     stop("please specify a genome .fa file for sequence extraction or specify a BSgenome object")
@@ -284,6 +284,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   }else{
     # need to +1 for BSgenomes sequence retreval
     # ranges given are bedtools (legacy)
+    
     start(ranges(bed)) <- start(ranges(bed)) +1
     width(ranges(bed))  <- 528
     
@@ -367,8 +368,8 @@ getBranchpointSequence <- function(query, uniqueId = "test",
                                               (as.numeric(x[2])-17),
                                               (as.numeric(x[2])-17) + 500))
 
-    queryAllPoints <- do.call("c",as.list(rep(query, 27)))
-    queryAllPoints <- do.call("c",as.list(rep(queryAllPoints, 2)))
+    queryAllPoints <- rep(query, 27)
+    queryAllPoints <- rep(queryAllPoints, 2)
 
     mcols(queryAllPoints)$status <- c(rep("REF", length(seqs)),
                                                rep("ALT", length(seqs.mut)))
@@ -425,18 +426,31 @@ getBranchpointSequence <- function(query, uniqueId = "test",
   #find canonical AG splice dinucleotides
   f <- gregexpr("AG",substr(queryAllPoints$seq, 252,501),perl = TRUE)
 
-  if (useParallel & length(queryAllPoints) > 20 & length(queryAllPoints) <= 50) {
+  if (useParallel & 
+      length(queryAllPoints) > 20 & 
+      length(queryAllPoints) <= 50) {
     cluster <- parallel::makeCluster(cores)
     canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
     parallel::stopCluster(cluster)
-  }else if(useParallel & length(queryAllPoints) > 50){
+    pyra <- lapply(queryAllPoints, getPPT)
+  }
+    
+  if(useParallel & (length(queryAllPoints) > 50 | flexibleParallel == FALSE)){
     cluster <- parallel::makeCluster(cores)
     canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
     pyra <-
       parallel::parLapply(cluster,queryAllPoints, getPPT)
     parallel::stopCluster(cluster)
+  }else if(useParallel & 
+            length(queryAllPoints) > 20 & 
+            length(queryAllPoints) <= 50 & 
+           flexibleParallel == TRUE) {
+    cluster <- parallel::makeCluster(cores)
+    canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
+    parallel::stopCluster(cluster)
+    pyra <- lapply(queryAllPoints, getPPT)
   }else{
-    if(length(queryAllPoints) > 50){
+    if(length(queryAllPoints) > 100){
       message("For this query size set useParallel = TRUE to speed up computations...")
     }
     canonHits <- lapply(f, getCanonical3SS)
@@ -489,8 +503,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
 #' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 #'
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP")
-#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
+#' query <- readQueryFile(querySNP,queryType = "SNP",exons = exons, filter = FALSE)
 #' predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = genome)
 #' @author Beth Signal
 
@@ -502,7 +515,8 @@ predictBranchpoints <- function(query, uniqueId = "test",
                                      BSgenome = NULL,
                                      useParallel = FALSE,
                                      cores = 1,
-                                     rmChr = FALSE){
+                                     rmChr = FALSE, 
+                                     flexibleParallel = TRUE){
   if(useParallel){
 
     maxCores <- parallel::detectCores()
@@ -525,7 +539,8 @@ predictBranchpoints <- function(query, uniqueId = "test",
                                             BSgenome = BSgenome,
                                             useParallel = useParallel,
                                             cores = cores,
-                                            rmChr = rmChr)
+                                            rmChr = rmChr,
+                                            flexibleParallel = flexibleParallel)
 
   #convert to data.frame for kernlab/caret
 
@@ -582,16 +597,10 @@ predictBranchpoints <- function(query, uniqueId = "test",
     queryAttributes.forModel[,n] <- as.numeric(queryAttributes.forModel[,n])
   }
 
-  #SVM prediction feature
-  newFeat <- kernlab::predict(branchpointer.svm,
-                              queryAttributes.forModel, "probabilities")
-  newFeat <- newFeat[,1]
-
-  queryAttributes.forModel <- cbind(queryAttributes.forModel, newFeat)
-
   #gbm prediction
-  p <- predict(object = branchpointer.gbm,
-               queryAttributes.forModel[,predictorNames],"prob")
+
+  p <- predict(object = branchpointer2.gbm,
+               queryAttributes.forModel,"prob")
 
   #reconfigure
 
