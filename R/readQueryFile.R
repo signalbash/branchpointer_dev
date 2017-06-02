@@ -11,9 +11,6 @@
 #' Should be produced by gtfToExons()
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
 #' @param filter remove SNP queries prior to finding finding nearest exons.
-#' @param useParallel use parallelisation to speed up code?
-#' (reccomended for > 500 query entries)
-#' @param cores number of cores to use in parallelisation (default = \code{1})
 #' @return Formatted query GRanges
 #' @export
 #' @import GenomicRanges
@@ -104,18 +101,18 @@ readQueryFile <- function(queryFile, queryType,exons, maxDist=50, filter=TRUE,
     }
 
     #check for duplicated query ids
-    if (any(duplicated(query$id))) {
+    if (any(duplicated(queryGRanges$id))) {
       message(paste0(length(which(
-        duplicated(query$id)
+        duplicated(queryGRanges$id)
       ))," query ids are not unique"))
       message("Check output for new names or rename")
-      query$id = make.names(query$id, unique = TRUE)
+      queryGRanges$id = make.names(queryGRanges$id, unique = TRUE)
     }
     
     #find 3'/5'exons
     if(length(queryGRanges) > 0){
       queryGRanges.loc <- getQueryLoc(queryGRanges, queryType, maxDist = maxDist, filter = filter,
-                                    exons = exons, useParallel = useParallel, cores = cores)
+                                    exons = exons)
       return(queryGRanges.loc)
     }
     

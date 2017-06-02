@@ -3,35 +3,26 @@
 #' Converts exon annotation to intron locations overlapping the branchpoint region
 #' for exculsion of non-branchpoint region SNPs
 #' Returns a character vector of chromosome locations
-#' @param exons data.frame containing exon co-ordinates.
+#' @param exons GRanges containing exon co-ordinates.
 #' Should be produced by gtfToExons()
 #' @param maxDist Maximum distance from the 3' exon to create the branchpoint region.
-#' @return vector of chromosome names and intronic locations
+#' @return GRanges containing intron window co-ordinates
 #' @import GenomicRanges
 #' @keywords internal
 #' @author Beth Signal
 exonsToIntrons <- function(exons, maxDist = 50){
   
-  #split exon annotation by strand
-  exons.pos <- exons[strand(exons) == "+",]
-  exons.neg <- exons[strand(exons) == "-",]
+  introns <- exons
   
-  #make vectors of all co-ordinates within the branchpoint window
-  intronLocs.p <- unlist(lapply(start(ranges(exons.pos)), 
-                                function(x){(x-maxDist):(x-1)}))
-  intronChroms.p <- rep(as.character(seqnames(exons.pos)), each=maxDist)
-  intronLocs.n <- unlist(lapply(end(ranges(exons.neg)), 
-                                function(x){(x+1):(x+maxDist)}))
-  intronChroms.n <- rep(as.character(seqnames(exons.neg)), each=maxDist)
+  posInd <- which(as.logical(strand(exons) == "+"))
+  start(introns[posInd]) <- start(introns[posInd]) - (maxDist + 1)
+  end(introns[posInd]) <- start(introns[posInd]) + maxDist
   
-  introns <- data.frame(chromosome=c(intronChroms.p,intronChroms.n),
-                        chr_start=c(intronLocs.p,intronLocs.n))
+  negInd <- which(as.logical(strand(exons) == "-"))
+  end(introns[negInd]) <- end(introns[negInd]) + (maxDist + 1)
+  start(introns[negInd]) <- end(introns[negInd]) - maxDist
   
-  #format as chrom_1000000
-  chromAndStart <- paste(introns$chromosome, introns$chr_start,sep="_")
-  chromAndStart <- gsub(" ","",chromAndStart)
-  
-  return(chromAndStart)
+  return(introns)
 }
 
 #' Get the closest 3' and 5' exons
@@ -40,7 +31,7 @@ exonsToIntrons <- function(exons, maxDist = 50){
 #' Returns the distance to the 3' exon, distance to the 5' exon,
 #' ids of the 3' and 5' exon,
 #' and if the exons are from the same parent gene
-#' @param queryLine line from a query GenomicRanges
+#' @param query GenomicRangesquery
 #' @param exons GenomicRanges containing exon co-ordinates.
 #' Should be produced by gtfToExons()
 #' @param queryType type of query. "SNP" or "region"
@@ -51,77 +42,47 @@ exonsToIntrons <- function(exons, maxDist = 50){
 #' @keywords internal
 #' @author Beth Signal
 
-getExonDists <- function(queryLine, exons, queryType){
+getExonDists <- function(query, exons, queryType){
   
   # if using regions, region start will be used for negative strand queries
   # & region end for positive strand queries
+
+  negInd <- which(as.logical(strand(query) == '-'))
+  posInd <- which(as.logical(strand(query) == '+'))
   
-  #faster when exonAnnotation is filtered
-  exons.subset <- exons[(as.character(seqnames(exons)) == 
-                           as.character(seqnames(queryLine)) & 
-                           strand(exons) == strand(queryLine))]
+  width(ranges(query))[negInd] <- 1
+  end <- end(ranges(query))[posInd]
+  start(ranges(query[posInd])) <- end
+  width(ranges(query[posInd])) <- 1
   
-  queryLine2 <- queryLine
-  if(as.logical(strand(queryLine2) == '-')){
-    width(ranges(queryLine2)) <- 1
-  }else{
-    end <- end(ranges(queryLine2))
-    start(ranges(queryLine2)) <- end
-    width(ranges(queryLine2)) <- 1
-  }
+  f <- GenomicRanges::follow(query,exons)
+  gene5 <- exons$gene_id[f]
+  exon5 <- exons$exon_id[f]
   
-  # follow to 5' in same gene annotation
-  sameGeneIndex <- which(mcols(exons.subset)$gene_id == 
-                        mcols(queryLine2)$gene_id)
-  f <- GenomicRanges::follow(queryLine2, 
-                             exons.subset[sameGeneIndex])
-  if(length(f) > 0 & !is.na(f[1])){
-    gene5 <- exons.subset$gene_id[sameGeneIndex][f]
-    exon5 <- exons.subset$exon_id[sameGeneIndex][f]
-    to5prime <- GenomicRanges::distance(queryLine2,exons.subset[sameGeneIndex][f]) + 1
-  }else{
-    f <- GenomicRanges::follow(queryLine2, 
-                               exons.subset)
-    if(length(f) > 0 & !is.na(f[1])){
-      gene5 <- exons.subset$gene_id[f]
-      exon5 <- exons.subset$exon_id[f]
-      to5prime <- GenomicRanges::distance(queryLine2,exons.subset[f]) + 1
-    }else{
-      gene5 <- NA
-      exon5 <- NA
-      to5prime <- NA
-    }
-  }
+  keep <- which(!is.na(f))
+  f <- f[keep]
+  to5prime <- rep(NA, length(query))
+  to5prime[keep] <- GenomicRanges::distance(query[keep],exons[f]) + 1
   
-  # preceed to 3'
-  p <- GenomicRanges::precede(queryLine2, exons.subset[sameGeneIndex])
-  if(length(p) > 0 & !is.na(p)[1]){
-    gene3 <- exons.subset$gene_id[sameGeneIndex][p]
-    exon3 <- exons.subset$exon_id[sameGeneIndex][p]
-    to3prime <- GenomicRanges::distance(queryLine2,exons.subset[sameGeneIndex][p]) + 1
-  }else{
-    p <- GenomicRanges::precede(queryLine2, 
-                               exons.subset)
-    if(length(p) > 0 & !is.na(p[1])){
-      gene3 <- exons.subset$gene_id[p]
-      exon3 <- exons.subset$exon_id[p]
-      to3prime <- GenomicRanges::distance(queryLine2,exons.subset[p]) + 1
-    }else{
-      gene3 <- NA
-      exon3 <- NA
-      to3prime <- NA
-    }
-  }
+  
+  p <- GenomicRanges::precede(query, exons)
+  gene3 <- exons$gene_id[p]
+  exon3 <- exons$exon_id[p]
+  
+  keep <- which(!is.na(p))
+  p <- p[keep]
+  to3prime <- rep(NA, length(query))
+  to3prime[keep] <- GenomicRanges::distance(query[keep],exons[p]) + 1
   
   sameGene <- gene3 == gene5
   
-  mcols(queryLine)$to_3prime <- to3prime
-  mcols(queryLine)$to_5prime <- to5prime
-  mcols(queryLine)$same_gene <- sameGene
-  mcols(queryLine)$exon_3prime <- exon3
-  mcols(queryLine)$exon_5prime <- exon5
+  query$to_3prime <- to3prime
+  query$to_5prime <- to5prime
+  query$same_gene <- sameGene
+  query$exon_3prime <- exon3
+  query$exon_5prime <- exon5
   
-  return(queryLine)
+  return(query)
 }
 
 #' Find the closest 3' and 5' exons to a branchpointer query
@@ -135,9 +96,6 @@ getExonDists <- function(queryLine, exons, queryType){
 #' Should be produced by gtfToExons()
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
 #' @param filter remove SNP queries prior to finding finding nearest exons.
-#' @param useParallel use parallelisation to speed up code?
-#' (reccomended for > 500 query entries)
-#' @param cores number of cores to use in parallelisation (default = \code{1})
 #' @return GenomicRanges with the query and its location relative to the 3' and 5' exons
 #' @export
 #' @import parallel
@@ -151,8 +109,7 @@ getExonDists <- function(queryLine, exons, queryType){
 #' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 #' @author Beth Signal
 
-getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
-                        useParallel=FALSE, cores=1){
+getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
 
   if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
 
@@ -166,47 +123,19 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
 
   }
 
-  if(useParallel){
-
-    maxCores <- parallel::detectCores()
-
-    if(maxCores < cores){
-
-      message(paste0("specified cores (", cores,") is greater than available cores(", maxCores,")"))
-      message(paste0("using all available cores"))
-      cores <- maxCores
-
-    }
-
-  }
-
   if(queryType=="SNP"){
 
       if(filter){
         message("filtering for SNPs in branchpoint windows")
         introns <- exonsToIntrons(exons, maxDist)
-        query.2 <- paste(as.character(seqnames(query)), start(ranges(query)), sep="_")
-        query.2 <- gsub(" ","", query.2)
-        x <- match(query.2, introns)
-        rm <- which(is.na(x))
-        if(length(rm)>0){
-          query <- query[-rm,]
-        }
+        o <- GenomicRanges::findOverlaps(query, introns)
+        keep <- unique(o@from)
+        query <- query[keep]
+
       }
-    }
-
-  if(useParallel){
-    cluster <- makeCluster(cores)
-    nearestExons <- parLapply(cluster,query,getExonDists,exons, queryType)
-    stopCluster(cluster)
-  }else{
-    nearestExons <- lapply(query,getExonDists,exons,queryType)
   }
-
-  nearestExons <- do.call("c", nearestExons)
   
-  #nearestExons$to_3prime <- as.numeric(nearestExons$to_3prime)
-  #nearestExons$to_5prime <- as.numeric(nearestExons$to_5prime)
+  nearestExons <- getExonDists(query, exons, queryType)
 
   #remove any points not in same gene
   rm <- which(nearestExons$same_gene == FALSE |
@@ -234,30 +163,14 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
         width(ranges(nearestExons))[near3] - addDistance
     }
 
-    # remove instances where the query region is too close to the exon
-    #startToEnd <- query$chrom_start <= query$chrom_end
-    #if(any(!startToEnd)){
-    #  rm <- which(startTo_End == FALSE)
-    #  query <- query[-rm,]
-    #  nearestExons <- nearestExons[-rm,]
-    #}
-
     #if introns regions are further from the 3'SS than the branchpoint region
     notNear3 <- which(nearestExons$to_3prime > 44)
     if(length(notNear3) > 0){
       nearestExons <- nearestExons[-notNear3]
     }
 
-    #get exon distances for re-aligned windows
-    if(useParallel){
-      cluster <- makeCluster(cores)
-      nearestExons <- parLapply(cluster,query,getExonDists,exons,queryType)
-      stopCluster(cluster)
-    }else{
-      nearestExons <- lapply(nearestExons,getExonDists,exons,queryType)
-    }
-    nearestExons <- do.call("c", nearestExons)
-
+    nearestExons <- getExonDists(nearestExons,exons,queryType)
+    
     #adjust query location to only cover the 27nt window
     move <- 18 - nearestExons$to_3prime
     
