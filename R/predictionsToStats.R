@@ -7,7 +7,7 @@
 #' @param query query GRanges containing all SNP ids to be summarised
 #' @param probabilityCutoff Value to be used as the cutoff for
 #' discriminating branchpoint sites from non-branchpoint sites
-#' (default = \code{0.5})
+#' (default = \code{0.52})
 #' @param probabilityChange Minimum probability score change
 #' required to call a branchpoint site as deleted or created by
 #' a SNP (default = \code{0.2})
@@ -30,89 +30,87 @@
 #'
 predictionsToStats <- function(query,
                                predictions,
-                               probabilityCutoff = 0.5,
+                               probabilityCutoff = 0.52,
                                probabilityChange = 0.2){
-
-  snpIDs <- query$id
   
-  mcols(query)$BP_num_REF = NA
-  mcols(query)$BP_num_ALT = NA
-  mcols(query)$deleted_n = NA
-  mcols(query)$created_n = NA
+  mcols(query)$BP_num_REF = 0
+  mcols(query)$BP_num_ALT = 0
+  mcols(query)$deleted_n = 0
+  mcols(query)$created_n = 0
   mcols(query)$dist_to_BP_REF = NA
   mcols(query)$dist_to_BP_ALT = NA
   mcols(query)$max_prob_REF = NA
   mcols(query)$max_prob_ALT = NA
   mcols(query)$max_U2_REF = NA
   mcols(query)$max_U2_ALT = NA
-
-    for(z in seq(along = snpIDs)){
-      #match snp id to predictions
-      predictions.snp <- predictions[predictions$id == snpIDs[z]]
-
-      #match snp id to query attributes
-      queryIndex <- which(query$id == snpIDs[z])
-
-      #find location of the SNP relative to the annotated 3'exon
-       #elementMeta$to_3prime
-
-      # find location of the SNP relative to the predicted BPs
-      # in reference and alternative sequences
-      
-      branchpointIndex.ref <- which(predictions.snp$status == "REF" & 
-                                      predictions.snp$branchpoint_prob >= probabilityCutoff)
-      
-      diffs.ref <- predictions.snp$to_3prime[branchpointIndex.ref] - 
-        predictions.snp$to_3prime_point[branchpointIndex.ref] 
-      query$BP_num_REF[queryIndex] <- length(diffs.ref)
-      
-      if(length(diffs.ref) > 0){
-        query$dist_to_BP_REF[queryIndex] <- diffs.ref[which.min(abs(diffs.ref))]
-      }
-
-      branchpointIndex.alt <- which(predictions.snp$status == "ALT" & 
-                                      predictions.snp$branchpoint_prob >= probabilityCutoff)
-      
-      diffs.alt <- predictions.snp$to_3prime[branchpointIndex.alt] - 
-        predictions.snp$to_3prime_point[branchpointIndex.alt] 
-      query$BP_num_ALT[queryIndex] <- length(diffs.alt)
-      
-      if(length(diffs.alt) > 0){
-        query$dist_to_BP_ALT[queryIndex] <- diffs.alt[which.min(abs(diffs.alt))]
-      }
-          
-      query$max_prob_REF[queryIndex] <- 
-        max(predictions.snp$branchpoint_prob[predictions.snp$status == "REF"])
-      query$max_prob_ALT[queryIndex] <- 
-        max(predictions.snp$branchpoint_prob[predictions.snp$status == "ALT"])
-      
-      # maximum U2 binding energy of all branchpoint sites
-      # above the probability cutoff
-      if(length(diffs.ref) > 0){
-        query$max_U2_REF[queryIndex] <- 
-          max(predictions.snp$U2_binding_energy[branchpointIndex.ref])
-      }
-      
-      if(length(diffs.alt) > 0){
-        query$max_U2_ALT[queryIndex] <- 
-          max(predictions.snp$U2_binding_energy[branchpointIndex.alt])
-      }
-
-      # all sites (ref & alt) called as branchpoints
-      branchpointLocs <- unique(predictions.snp$to_3prime_point[c(branchpointIndex.ref, branchpointIndex.alt)])
-
-      #probabiltiy scores for ref/alt at all BP sites
-      prob.ref <- predictions.snp$branchpoint_prob[which(predictions.snp$status == "REF" & 
-                                                           predictions.snp$to_3prime_point %in% branchpointLocs)]
-      prob.alt <- predictions.snp$branchpoint_prob[which(predictions.snp$status == "ALT" & 
-                                                           predictions.snp$to_3prime_point %in% branchpointLocs)]
-
-      #change must be of sufficient magnitude to be called as created or deleted
-      query$deleted_n[queryIndex] <- length(which((prob.ref - prob.alt) > probabilityChange &
-                                                          (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
-      query$created_n[queryIndex] <- length(which((prob.ref - prob.alt) < (probabilityChange * -1) &
-                                                          (prob.ref < probabilityCutoff | prob.alt < probabilityCutoff)))
-    }
   
-  return(query)
+  predictions <- as.data.frame(mcols(predictions))
+  predictions$m <- match(predictions$id, query$id)
+  predictions <- plyr::arrange(predictions, m, status, to_3prime_point)
+  
+  # Reference sequence summary
+  bps.ref <- which(predictions$branchpoint_prob >= probabilityCutoff & 
+                     predictions$status == "REF")
+  bps.ref <- predictions[bps.ref,]
+  bps.ref$distance <- bps.ref$to_3prime - bps.ref$to_3prime_point
+  
+  tab <- as.data.frame(table(bps.ref$id))
+  m <- match(query$id, tab$Var1)
+  query$BP_num_REF[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
+  
+  bps.ref <- plyr::arrange(bps.ref, abs(distance))
+  m <- match(query$id, bps.ref$id)
+  query$dist_to_BP_REF[which(!is.na(m))] <- bps.ref$distance[m[which(!is.na(m))]]
+  
+  bps.ref <- plyr::arrange(bps.ref, plyr::desc(branchpoint_prob))
+  m <- match(query$id, bps.ref$id)
+  query$max_prob_REF[which(!is.na(m))] <- bps.ref$branchpoint_prob[m[which(!is.na(m))]]
+  
+  bps.ref <- plyr::arrange(bps.ref, plyr::desc(U2_binding_energy))
+  m <- match(query$id, bps.ref$id)
+  query$max_U2_REF[which(!is.na(m))] <- bps.ref$U2_binding_energy[m[which(!is.na(m))]]
+  
+  # Alternative sequence summary
+  bps.alt <- which(predictions$branchpoint_prob >= probabilityCutoff 
+                   & predictions$status == "ALT")
+  bps.alt <- predictions[bps.alt,]
+  bps.alt$distance <- bps.alt$to_3prime - bps.alt$to_3prime_point
+  
+  tab <- as.data.frame(table(bps.alt$id))
+  m <- match(query$id, tab$Var1)
+  query$BP_num_ALT[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
+  
+  bps.alt <- plyr::arrange(bps.alt, abs(distance))
+  m <- match(query$id, bps.alt$id)
+  query$dist_to_BP_ALT[which(!is.na(m))] <- bps.alt$distance[m[which(!is.na(m))]]
+  
+  bps.alt <- plyr::arrange(bps.alt, plyr::desc(branchpoint_prob))
+  m <- match(query$id, bps.alt$id)
+  query$max_prob_ALT[which(!is.na(m))] <- bps.alt$branchpoint_prob[m[which(!is.na(m))]]
+  
+  bps.alt <- plyr::arrange(bps.alt, plyr::desc(U2_binding_energy))
+  m <- match(query$id, bps.alt$id)
+  query$max_U2_ALT[which(!is.na(m))] <- bps.alt$U2_binding_energy[m[which(!is.na(m))]]
+  
+  id.loc <- with(predictions, paste0(id,"_", to_3prime_point))
+  index <- which(id.loc %in% id.loc[predictions$branchpoint_prob > probabilityCutoff])
+  
+  # Any sites changed?
+  bps.all <- predictions[index,]
+  bps.all <- bps.all[,c('id','to_3prime_point','branchpoint_prob','status')]
+  bps.all <- plyr::arrange(bps.all, id, to_3prime_point, status)
+  
+  change.bySite <- aggregate(branchpoint_prob ~ id+to_3prime_point, bps.all, diff)
+  
+  deleted <- as.data.frame(table(change.bySite$id[
+    which(change.bySite$branchpoint_prob > probabilityChange)]))
+  created <- as.data.frame(table(change.bySite$id[
+    which(change.bySite$branchpoint_prob < (probabilityChange*-1))]))
+  
+  m <- match(query$id, deleted$Var1)
+  query$deleted_n[which(!is.na(m))] <- deleted$Freq[m[which(!is.na(m))]]
+  m <- match(query$id, created$Var1)
+  query$created_n[which(!is.na(m))] <- created$Freq[m[which(!is.na(m))]]
+  
+  return(query) 
 }
