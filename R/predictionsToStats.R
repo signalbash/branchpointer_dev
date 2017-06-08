@@ -10,7 +10,7 @@
 #' (default = \code{0.52})
 #' @param probabilityChange Minimum probability score change
 #' required to call a branchpoint site as deleted or created by
-#' a SNP (default = \code{0.2})
+#' a SNP (default = \code{0.15})
 #' @return GRanges with summarised branchpoint changes
 #' occuring within the intron due to a SNP.
 #' @export
@@ -31,7 +31,7 @@
 predictionsToStats <- function(query,
                                predictions,
                                probabilityCutoff = 0.52,
-                               probabilityChange = 0.2){
+                               probabilityChange = 0.15){
   
   mcols(query)$BP_num_REF = 0
   mcols(query)$BP_num_ALT = 0
@@ -62,9 +62,10 @@ predictionsToStats <- function(query,
   m <- match(query$id, bps.ref$id)
   query$dist_to_BP_REF[which(!is.na(m))] <- bps.ref$distance[m[which(!is.na(m))]]
   
-  bps.ref <- plyr::arrange(bps.ref, plyr::desc(branchpoint_prob))
-  m <- match(query$id, bps.ref$id)
-  query$max_prob_REF[which(!is.na(m))] <- bps.ref$branchpoint_prob[m[which(!is.na(m))]]
+  bps.ref.all <- predictions[which(predictions$status == "REF"),]
+  bps.ref.all <- plyr::arrange(bps.ref.all, plyr::desc(branchpoint_prob))
+  m <- match(query$id, bps.ref.all$id)
+  query$max_prob_REF[which(!is.na(m))] <- bps.ref.all$branchpoint_prob[m[which(!is.na(m))]]
   
   bps.ref <- plyr::arrange(bps.ref, plyr::desc(U2_binding_energy))
   m <- match(query$id, bps.ref$id)
@@ -84,9 +85,10 @@ predictionsToStats <- function(query,
   m <- match(query$id, bps.alt$id)
   query$dist_to_BP_ALT[which(!is.na(m))] <- bps.alt$distance[m[which(!is.na(m))]]
   
-  bps.alt <- plyr::arrange(bps.alt, plyr::desc(branchpoint_prob))
-  m <- match(query$id, bps.alt$id)
-  query$max_prob_ALT[which(!is.na(m))] <- bps.alt$branchpoint_prob[m[which(!is.na(m))]]
+  bps.alt.all <- predictions[which(predictions$status == "ALT"),]
+  bps.alt.all <- plyr::arrange(bps.alt.all, plyr::desc(branchpoint_prob))
+  m <- match(query$id, bps.alt.all$id)
+  query$max_prob_ALT[which(!is.na(m))] <- bps.alt.all$branchpoint_prob[m[which(!is.na(m))]]
   
   bps.alt <- plyr::arrange(bps.alt, plyr::desc(U2_binding_energy))
   m <- match(query$id, bps.alt$id)
