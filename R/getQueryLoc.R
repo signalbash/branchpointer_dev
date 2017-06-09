@@ -50,29 +50,31 @@ getExonDists <- function(query, exons, queryType){
   negInd <- which(as.logical(strand(query) == '-'))
   posInd <- which(as.logical(strand(query) == '+'))
   
-  width(ranges(query))[negInd] <- 1
-  end <- end(ranges(query))[posInd]
-  start(ranges(query[posInd])) <- end
-  width(ranges(query[posInd])) <- 1
+  queryPoint <- query
   
-  f <- GenomicRanges::follow(query,exons)
+  width(ranges(queryPoint))[negInd] <- 1
+  end <- end(ranges(queryPoint))[posInd]
+  start(ranges(queryPoint[posInd])) <- end
+  width(ranges(queryPoint[posInd])) <- 1
+  
+  f <- GenomicRanges::follow(queryPoint,exons)
   gene5 <- exons$gene_id[f]
   exon5 <- exons$exon_id[f]
   
   keep <- which(!is.na(f))
   f <- f[keep]
-  to5prime <- rep(NA, length(query))
-  to5prime[keep] <- GenomicRanges::distance(query[keep],exons[f]) + 1
+  to5prime <- rep(NA, length(queryPoint))
+  to5prime[keep] <- GenomicRanges::distance(queryPoint[keep],exons[f]) + 1
   
   
-  p <- GenomicRanges::precede(query, exons)
+  p <- GenomicRanges::precede(queryPoint, exons)
   gene3 <- exons$gene_id[p]
   exon3 <- exons$exon_id[p]
   
   keep <- which(!is.na(p))
   p <- p[keep]
-  to3prime <- rep(NA, length(query))
-  to3prime[keep] <- GenomicRanges::distance(query[keep],exons[p]) + 1
+  to3prime <- rep(NA, length(queryPoint))
+  to3prime[keep] <- GenomicRanges::distance(queryPoint[keep],exons[p]) + 1
   
   sameGene <- gene3 == gene5
   
@@ -154,13 +156,17 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
     if(length(near3) > 0){
       addDistance <- 18 - nearestExons$to_3prime[near3]
       negStrand <- which(as.logical(strand(nearestExons)[near3] == "-"))
+      posStrand <- which(as.logical(strand(nearestExons)[near3] == "+"))
       
       if(length(negStrand) > 0){
         start(ranges(nearestExons))[near3][negStrand] <- 
           start(ranges(nearestExons))[near3][negStrand] + addDistance[negStrand]
       }
-      width(ranges(nearestExons))[near3] <- 
-        width(ranges(nearestExons))[near3] - addDistance
+      if(length(posStrand) > 0){
+          end(ranges(nearestExons))[near3][posStrand] <- 
+              end(ranges(nearestExons))[near3][posStrand] - addDistance[posStrand]
+      }
+      
     }
 
     #if introns regions are further from the 3'SS than the branchpoint region
@@ -172,21 +178,22 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
     nearestExons <- getExonDists(nearestExons,exons,queryType)
     
     #adjust query location to only cover the 27nt window
-    move <- 18 - nearestExons$to_3prime
     
-    #negStrand -- move start
-    negStrand <- which(as.logical(GenomicRanges::strand(nearestExons) == "-"))
-    start(ranges(nearestExons))[negStrand] <- 
-      start(ranges(nearestExons))[negStrand] + move[negStrand]
-
-    #posStrand
+    #negStrand -- move end
+    negStrand <- which(as.logical(strand(nearestExons) == "-"))
+    if(length(negStrand) > 0){
+        end(ranges(nearestExons[negStrand])) <- 
+            start(ranges(nearestExons[negStrand])) - 
+            nearestExons$to_3prime[negStrand] + 44
+    }
+    #posStrand -- move start
     posStrand <- which(as.logical(strand(nearestExons) == "+"))
-    end <- end(ranges(nearestExons))[posStrand]
-    start(ranges(nearestExons))[posStrand] <- end - 26
-    
-    #setting multiple GRanges values to a single value requires indexing
-    width(ranges(nearestExons))[c(posStrand, negStrand)] <- 27
-    
+    if(length(posStrand) > 0){
+        start(ranges(nearestExons[posStrand])) <- 
+            end(ranges(nearestExons[posStrand])) +
+            nearestExons$to_3prime[posStrand] - 44
+    }
+
     }else if(queryType=="SNP"){
 
       #if a 5' or 3' exon can't be found remove from analysis
