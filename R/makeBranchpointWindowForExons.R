@@ -8,24 +8,19 @@
 #' @param exons GRanges containing exon co-ordinates.
 #' @param forceClosestExon Force branchpointer to find the closest exon and not the
 #' exon annotated as 5' to the query
-#' @param useParallel use parallelisation to speed up code? - passed to getQueryLoc
-#' (reccomended for > 500 query entries)
-#' @param cores number of cores to use in parallelisation (default = \code{1})
-#' Should be produced by gtfToExons()
 #' @return Granges with formatted query
 #' @export
 #' @import GenomicRanges
 #' @examples
 #' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
-#' windowquery <- makeRegions("ENSG00000139618", "gene_id", exons)
-#' windowquery <- makeRegions("ENST00000357654", "transcript_id", exons)
-#' windowquery <- makeRegions("ENSE00003518965", "exon_id", exons)
+#' windowquery <- makeBranchpointWindowForExons ("ENSG00000139618.14", "gene_id", exons)
+#' windowquery <- makeBranchpointWindowForExons ("ENST00000357654.7", "transcript_id", exons)
+#' windowquery <- makeBranchpointWindowForExons ("ENSE00003518965.1", "exon_id", exons)
 #' @author Beth Signal
 
-makeRegions <- function(id, idType, exons,forceClosestExon = FALSE, 
-                        useParallel=FALSE, cores=1) {
-
+makeBranchpointWindowForExons <- function(id, idType, exons,forceClosestExon = FALSE) {
+    
   validTypes <- c("gene_id", "transcript_id","exon_id")
 
   #missing or invalid types
@@ -119,9 +114,9 @@ makeRegions <- function(id, idType, exons,forceClosestExon = FALSE,
     mcols(window)$same_gene <- TRUE
     mcols(window)$exon_3prime <- mcols(window)$exon_id
     mcols(window)$exon_5prime <- mcols(exons.subset[m])$exon_id
+    
   }else{
-      window <- getQueryLoc(window,queryType = "region",exons = exons.subset, 
-                  useParallel = useParallel, cores=cores)
+      window <- getQueryLoc(window,queryType = "region",exons = exons.subset)
   }
     
   mcols(window)$id <- mcols(window)$exon_id

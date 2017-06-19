@@ -8,9 +8,6 @@
 #' Should be produced by gtfToExons()
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
 #' @param filter remove SNP queries prior to finding finding nearest exons?
-#' @param useParallel use parallelisation to speed up code?
-#' (reccomended for > 500 query entries)
-#' @param cores number of cores to use in parallelisation (default = \code{1})
 #' @return formatted SNP query GRanges
 #' @export
 #' @import biomaRt
@@ -23,11 +20,10 @@
 #' exons <- gtfToExons(smallExons)
 #' 
 #' mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
-#' query <- snpToQuery("rs17000647", mart.snp, exons)
+#' query <- makeBranchpointWindowForSNP("rs17000647", mart.snp, exons)
 #' @author Beth Signal
 
-snpToQuery <- function(refSNP, mart.snp,exons,maxDist=50, filter=TRUE, 
-                       useParallel=FALSE, cores=1){
+makeBranchpointWindowForSNP <- function(refSNP, mart.snp,exons,maxDist=50, filter=TRUE){
   snpInfo <- biomaRt::getBM(attributes = c("refsnp_id",'refsnp_source', "chr_name",
                                    "chrom_start", "allele"),
                     filters = "snp_filter", values = refSNP, mart = mart.snp)
@@ -88,8 +84,9 @@ snpToQuery <- function(refSNP, mart.snp,exons,maxDist=50, filter=TRUE,
   
   #find 3'/5'exons
   if(length(queryGRanges) > 0){
-    queryGRanges.loc <- getQueryLoc(queryGRanges, queryType="SNP", maxDist = maxDist, filter = filter,
-                                    exons = exons, useParallel = useParallel, cores = cores)
+    queryGRanges.loc <- getQueryLoc(queryGRanges, queryType="SNP", 
+                                    maxDist = maxDist, filter = filter,
+                                    exons = exons)
     return(queryGRanges.loc)
   }
 
