@@ -99,16 +99,7 @@ getExonDists <- function(query, exons, queryType){
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
 #' @param filter remove SNP queries prior to finding finding nearest exons.
 #' @return GenomicRanges with the query and its location relative to the 3' and 5' exons
-#' @export
-#' @import parallel
 #' @import GenomicRanges
-#' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
-#' exons <- gtfToExons(smallExons)
-#'
-#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP")
-#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
 #' @author Beth Signal
 
 getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
