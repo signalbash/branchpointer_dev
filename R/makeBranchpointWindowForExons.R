@@ -1,6 +1,6 @@
 #' Make branchpoint window regions
 #'
-#' Genrate branchpoint window regions corresponding to annotated exon(s) within a
+#' Generate branchpoint window regions corresponding to annotated exon(s) within a
 #' queried gene, transcript or exon id
 #' @param id identifier(s) for the query gene/transcript/exon id
 #' @param idType type of id to match in the exon annotation file (\code{"gene_id"},
@@ -12,14 +12,14 @@
 #' @export
 #' @import GenomicRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf",package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
-#' windowquery <- makeBranchpointWindowForExons ("ENSG00000139618.14", "gene_id", exons)
-#' windowquery <- makeBranchpointWindowForExons ("ENST00000357654.7", "transcript_id", exons)
-#' windowquery <- makeBranchpointWindowForExons ("ENSE00003518965.1", "exon_id", exons)
+#' windowquery <- makeBranchpointWindowForExons("ENSG00000139618.14", "gene_id", exons)
+#' windowquery <- makeBranchpointWindowForExons("ENST00000357654.7", "transcript_id", exons)
+#' windowquery <- makeBranchpointWindowForExons("ENSE00003518965.1", "exon_id", exons)
 #' @author Beth Signal
 
-makeBranchpointWindowForExons <- function(id, idType, exons,forceClosestExon = FALSE) {
+makeBranchpointWindowForExons <- function(id, idType, exons, forceClosestExon = FALSE) {
     
   validTypes <- c("gene_id", "transcript_id","exon_id")
 

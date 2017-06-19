@@ -9,7 +9,7 @@
 #' @importFrom utils write.table
 #' @importFrom rtracklayer import
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
+#' smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf",
 #' package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
 #' @author Beth Signal

@@ -1,4 +1,4 @@
-#' Gets a branchpointer formatted query from refsnp ids
+#' Makes a branchpointer formatted GRanges object from refsnp ids
 #'
 #' Searches Biomart for refsnp ids, and pulls genomic location and sequence identity information
 #' Reformats alleles so each query has only one alternative allele
@@ -16,7 +16,7 @@
 #' @importFrom S4Vectors Rle
 #' @importFrom IRanges IRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf",package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
 #' 
 #' mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")

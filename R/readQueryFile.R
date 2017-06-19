@@ -99,10 +99,11 @@ getExonDists <- function(query, exons, queryType){
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
 #' @param filter remove SNP queries prior to finding finding nearest exons.
 #' @return GenomicRanges with the query and its location relative to the 3' and 5' exons
+#' @keywords internal
 #' @import GenomicRanges
 #' @author Beth Signal
 
-getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
+getQueryLoc <- function(query, queryType, maxDist=50, filter=TRUE, exons){
   
   if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
     
@@ -210,11 +211,11 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
 
 #' Read a query file
 #'
-#' Reads and formats a query file, generated from snpToQuery, or manually generated.
+#' Reads and formats a manually generated query file, and finds realtive locations of the closest annotated exons
 #' Converts unstranded SNPs to two entries for each strand.
 #' Checks for duplicate names and replaces if found.
 #' @param queryFile tab delimited file containing query information.
-#' For intronic regions should be in the format: region id, chromosome name, region start, region id, strand.
+#' For intronic regions should be in the format: region id, chromosome name, region start, region end, strand.
 #' For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)
 #' @param queryType type of query file (\code{"SNP"} or \code{"region"})
 #' @param exons GRanges containing exon co-ordinates.
@@ -229,14 +230,14 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons){
 #' @importFrom S4Vectors Rle
 #' @importFrom IRanges IRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",package = "branchpointer")
+#' smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf", package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
 #' 
-#' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP", exons)
+#' querySNPFile <- system.file("extdata","SNP_example.txt", package = "branchpointer")
+#' querySNP <- readQueryFile(querySNPFile, queryType = "SNP", exons)
 #'
-#' queryIntron <- system.file("extdata","intron_example.txt", package = "branchpointer")
-#' query <- readQueryFile(queryIntron,queryType = "region", exons)
+#' queryIntronFile <- system.file("extdata","intron_example.txt", package = "branchpointer")
+#' queryIntron <- readQueryFile(queryIntronFile,queryType = "region", exons)
 #' @author Beth Signal
 
 readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
