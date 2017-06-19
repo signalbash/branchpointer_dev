@@ -16,22 +16,22 @@
 #' @export
 #' @import GenomicRanges
 #' @examples
-#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf",
-#' package = "branchpointer")
+#' smallExons <- system.file("extdata","gencode.v24.annotation.small.gtf", package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
-#' genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-#'
+#' g <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+
 #' querySNP <- system.file("extdata","SNP_example.txt", package = "branchpointer")
-#' query <- readQueryFile(querySNP,queryType = "SNP")
-#' query <- getQueryLoc(query,queryType = "SNP",exons = exons, filter = FALSE)
-#' predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = genome)
+#' query <- readQueryFile(querySNP,queryType = "SNP",exons = exons, filter = FALSE)
+#' predictions <- predictBranchpoints(query,queryType = "SNP",BSgenome = g)
+
 #' snpStats <- predictionsToStats(query,predictions)
+
 #' @author Beth Signal
 #'
-predictionsToStats <- function(query,
-                               predictions,
-                               probabilityCutoff = 0.52,
-                               probabilityChange = 0.15){
+predictionsToSummary <- function(query,
+                                 predictions,
+                                 probabilityCutoff = 0.52,
+                                 probabilityChange = 0.15){
   
   mcols(query)$BP_num_REF = 0
   mcols(query)$BP_num_ALT = 0
@@ -45,8 +45,8 @@ predictionsToStats <- function(query,
   mcols(query)$max_U2_ALT = NA
   
   predictions <- as.data.frame(mcols(predictions))
-  predictions$m <- match(predictions$id, query$id)
-  predictions <- plyr::arrange(predictions, m, status, to_3prime_point)
+  #predictions$m <- match(predictions$id, query$id)
+  #predictions <- plyr::arrange(predictions, m, status, to_3prime_point)
   
   # Reference sequence summary
   bps.ref <- which(predictions$branchpoint_prob >= probabilityCutoff & 
@@ -58,16 +58,21 @@ predictionsToStats <- function(query,
   m <- match(query$id, tab$Var1)
   query$BP_num_REF[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
   
-  bps.ref <- plyr::arrange(bps.ref, abs(distance))
+  #bps.ref <- plyr::arrange(bps.ref, abs(distance))
+  bps.ref[order(abs(bps.ref[,which(colnames(bps.ref) == "distance")])),]
   m <- match(query$id, bps.ref$id)
   query$dist_to_BP_REF[which(!is.na(m))] <- bps.ref$distance[m[which(!is.na(m))]]
   
   bps.ref.all <- predictions[which(predictions$status == "REF"),]
-  bps.ref.all <- plyr::arrange(bps.ref.all, plyr::desc(branchpoint_prob))
+  #bps.ref.all <- plyr::arrange(bps.ref.all, plyr::desc(branchpoint_prob))
+  bps.ref.all[rev(order(bps.ref.all[,which(colnames(bps.ref.all) == "branchpoint_prob")])),]
+  
   m <- match(query$id, bps.ref.all$id)
   query$max_prob_REF[which(!is.na(m))] <- bps.ref.all$branchpoint_prob[m[which(!is.na(m))]]
   
-  bps.ref <- plyr::arrange(bps.ref, plyr::desc(U2_binding_energy))
+  #bps.ref <- plyr::arrange(bps.ref, plyr::desc(U2_binding_energy))
+  bps.ref[rev(order(bps.ref[,which(colnames(bps.ref) == "U2_binding_energy")])),]
+  
   m <- match(query$id, bps.ref$id)
   query$max_U2_REF[which(!is.na(m))] <- bps.ref$U2_binding_energy[m[which(!is.na(m))]]
   
@@ -81,16 +86,22 @@ predictionsToStats <- function(query,
   m <- match(query$id, tab$Var1)
   query$BP_num_ALT[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
   
-  bps.alt <- plyr::arrange(bps.alt, abs(distance))
+  #bps.alt <- plyr::arrange(bps.alt, abs(distance))
+  bps.alt[order(abs(bps.alt[,which(colnames(bps.alt) == "distance")])),]
+  
   m <- match(query$id, bps.alt$id)
   query$dist_to_BP_ALT[which(!is.na(m))] <- bps.alt$distance[m[which(!is.na(m))]]
   
   bps.alt.all <- predictions[which(predictions$status == "ALT"),]
-  bps.alt.all <- plyr::arrange(bps.alt.all, plyr::desc(branchpoint_prob))
+  #bps.alt.all <- plyr::arrange(bps.alt.all, plyr::desc(branchpoint_prob))
+  bps.alt.all[rev(order(bps.alt.all[,which(colnames(bps.alt.all) == "branchpoint_prob")])),]
+  
   m <- match(query$id, bps.alt.all$id)
   query$max_prob_ALT[which(!is.na(m))] <- bps.alt.all$branchpoint_prob[m[which(!is.na(m))]]
   
-  bps.alt <- plyr::arrange(bps.alt, plyr::desc(U2_binding_energy))
+  #bps.alt <- plyr::arrange(bps.alt, plyr::desc(U2_binding_energy))
+  bps.alt[rev(order(bps.alt[,which(colnames(bps.alt) == "U2_binding_energy")])),]
+  
   m <- match(query$id, bps.alt$id)
   query$max_U2_ALT[which(!is.na(m))] <- bps.alt$U2_binding_energy[m[which(!is.na(m))]]
   
@@ -100,7 +111,7 @@ predictionsToStats <- function(query,
   # Any sites changed?
   bps.all <- predictions[index,]
   bps.all <- bps.all[,c('id','to_3prime_point','branchpoint_prob','status')]
-  bps.all <- plyr::arrange(bps.all, id, to_3prime_point, status)
+  #bps.all <- plyr::arrange(bps.all, id, to_3prime_point, status)
   
   change.bySite <- aggregate(branchpoint_prob ~ id+to_3prime_point, bps.all, diff)
   
