@@ -188,6 +188,8 @@ getPPT <- function(attributes){
 #' @importFrom Biostrings getSeq
 #' @importFrom BSgenome.Hsapiens.UCSC.hg38 BSgenome.Hsapiens.UCSC.hg38
 #' @importFrom data.table fread
+#' @importFrom GenomeInfoDb seqlevels
+#' @importFrom GenomeInfoDb seqnames
 #' @importClassesFrom data.table data.table
 #' @keywords internal
 #' @author Beth Signal

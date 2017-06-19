@@ -15,6 +15,7 @@
 #' occuring within the intron due to a SNP.
 #' @export
 #' @import GenomicRanges
+#' @importFrom stats aggregate
 #' @examples
 #' smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf", package = "branchpointer")
 #' exons <- gtfToExons(smallExons)
