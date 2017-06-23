@@ -197,83 +197,102 @@ getQueryLoc <- function(query, queryType,maxDist=50, filter=TRUE, exons,
   if(length(rm) > 0){
     nearestExons <- nearestExons[-rm]
   }
+  
+  if(length(nearestExons) > 0){
 
-
-  if(queryType=="region"){
-    #if introns regions are closer to the 3'SS than the branchpoint region
-    # move the region to cover the window of the nearest exon
-    near3 <- which(nearestExons$to_3prime < 18)
-    if(length(near3) > 0){
-      addDistance <- 18 - nearestExons$to_3prime[near3]
-      negStrand <- which(as.logical(strand(nearestExons)[near3] == "-"))
-      
-      if(length(negStrand) > 0){
-        start(ranges(nearestExons))[near3][negStrand] <- 
-          start(ranges(nearestExons))[near3][negStrand] + addDistance[negStrand]
-      }
-      width(ranges(nearestExons))[near3] <- 
-        width(ranges(nearestExons))[near3] - addDistance
-    }
-
-    # remove instances where the query region is too close to the exon
-    #startToEnd <- query$chrom_start <= query$chrom_end
-    #if(any(!startToEnd)){
-    #  rm <- which(startTo_End == FALSE)
-    #  query <- query[-rm,]
-    #  nearestExons <- nearestExons[-rm,]
-    #}
-
-    #if introns regions are further from the 3'SS than the branchpoint region
-    notNear3 <- which(nearestExons$to_3prime > 44)
-    if(length(notNear3) > 0){
-      nearestExons <- nearestExons[-notNear3]
-    }
-
-    #get exon distances for re-aligned windows
-    if(useParallel){
-      cluster <- makeCluster(cores)
-      nearestExons <- parApply(cluster,query,1,getExonDists,exons,queryType)
-      stopCluster(cluster)
-    }else{
-      nearestExons <- lapply(nearestExons,getExonDists,exons,queryType)
-    }
-    nearestExons <- do.call("c", nearestExons)
-
-    #adjust query location to only cover the 27nt window
-    move <- 18 - nearestExons$to_3prime
-    
-    #negStrand -- move start
-    negStrand <- which(as.logical(strand(nearestExons) == "-"))
-    start(ranges(nearestExons))[negStrand] <- 
-      start(ranges(nearestExons))[negStrand] + move[negStrand]
-
-    #posStrand
-    posStrand <- which(as.logical(strand(nearestExons) == "+"))
-    end <- end(ranges(nearestExons))[posStrand]
-    start(ranges(nearestExons))[posStrand] <- end - 26
-    
-    #setting multiple GRanges values to a single value requires indexing
-    width(ranges(nearestExons))[c(posStrand, negStrand)] <- 27
-    
-    }else if(queryType=="SNP"){
-
-      #if a 5' or 3' exon can't be found remove from analysis
-      rm <- which(nearestExons$to_3prime==-1 | nearestExons$to_5prime==-1)
-      if(length(rm) > 0){
-        nearestExons <- nearestExons[-rm,]
-      }
-      
-      rm <- which(nearestExons$to_3prime > maxDist)
-      if(length(rm) > 0){
-        nearestExons <- nearestExons[-rm,]
+    if(queryType=="region"){
+      #if introns regions are closer to the 3'SS than the branchpoint region
+      # move the region to cover the window of the nearest exon
+      near3 <- which(nearestExons$to_3prime < 18)
+      if(length(near3) > 0){
+        addDistance <- 18 - nearestExons$to_3prime[near3]
+        negStrand <- which(as.logical(strand(nearestExons)[near3] == "-"))
+        
+        if(length(negStrand) > 0){
+          start(ranges(nearestExons))[near3][negStrand] <- 
+            start(ranges(nearestExons))[near3][negStrand] + addDistance[negStrand]
+        }
+        width(ranges(nearestExons))[near3] <- 
+          width(ranges(nearestExons))[near3] - addDistance
       }
   
-      #check both exons come from the same parent gene 
-      #(i.e query is in intronic region)
-      rm <- which(!(nearestExons$same_gene))
-      if(length(rm) > 0){
-        nearestExons <- nearestExons[-rm,]
+      # remove instances where the query region is too close to the exon
+      #startToEnd <- query$chrom_start <= query$chrom_end
+      #if(any(!startToEnd)){
+      #  rm <- which(startTo_End == FALSE)
+      #  query <- query[-rm,]
+      #  nearestExons <- nearestExons[-rm,]
+      #}
+  
+      #if introns regions are further from the 3'SS than the branchpoint region
+      notNear3 <- which(nearestExons$to_3prime > 44)
+      if(length(notNear3) > 0){
+        nearestExons <- nearestExons[-notNear3]
       }
+      
+      if(length(nearestExons) > 0){
+  
+        #get exon distances for re-aligned windows
+        if(useParallel){
+          cluster <- makeCluster(cores)
+          nearestExons <- parApply(cluster,query,1,getExonDists,exons,queryType)
+          stopCluster(cluster)
+        }else{
+          nearestExons <- lapply(nearestExons,getExonDists,exons,queryType)
+        }
+        nearestExons <- do.call("c", nearestExons)
+    
+        #adjust query location to only cover the 27nt window
+        move <- 18 - nearestExons$to_3prime
+        
+        #negStrand -- move start
+        negStrand <- which(as.logical(strand(nearestExons) == "-"))
+        if(length(negStrand) > 0){
+          start(ranges(nearestExons))[negStrand] <- 
+            start(ranges(nearestExons))[negStrand] + move[negStrand]
+        }
+        #posStrand
+        posStrand <- which(as.logical(strand(nearestExons) == "+"))
+        if(length(posStrand) > 0){
+          end <- end(ranges(nearestExons))[posStrand]
+          start(ranges(nearestExons))[posStrand] <- end - 26
+        }
+        #setting multiple GRanges values to a single value requires indexing
+        width(ranges(nearestExons))[c(posStrand, negStrand)] <- 27
+        
+        return(nearestExons)
+      }else{
+        return(NA)
+      }
+      
+      }else if(queryType=="SNP"){
+    
+          #if a 5' or 3' exon can't be found remove from analysis
+          rm <- which(nearestExons$to_3prime==-1 | nearestExons$to_5prime==-1)
+          if(length(rm) > 0){
+            nearestExons <- nearestExons[-rm,]
+          }
+          
+          rm <- which(nearestExons$to_3prime > maxDist)
+          if(length(rm) > 0){
+            nearestExons <- nearestExons[-rm,]
+          }
+      
+          #check both exons come from the same parent gene 
+          #(i.e query is in intronic region)
+          rm <- which(!(nearestExons$same_gene))
+          if(length(rm) > 0){
+            nearestExons <- nearestExons[-rm,]
+          }
+        if(length(nearestExons) > 0){
+          return(nearestExons)
+        }else{
+          return(NA)
+        }      
+        
+      }
+    
+  }else{
+    return(NA)
   }
-  return(nearestExons)
 }
