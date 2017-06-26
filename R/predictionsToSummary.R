@@ -61,12 +61,12 @@ predictionsToSummary <- function(query,
   query$dist_to_BP_REF[which(!is.na(m))] <- bps.ref$distance[m[which(!is.na(m))]]
   
   bps.ref.all <- predictions[which(predictions$status == "REF"),]
-  bps.ref.all[rev(order(bps.ref.all[,which(colnames(bps.ref.all) == "branchpoint_prob")])),]
+  bps.ref.all <- bps.ref.all[rev(order(bps.ref.all[,which(colnames(bps.ref.all) == "branchpoint_prob")])),]
   
   m <- match(query$id, bps.ref.all$id)
   query$max_prob_REF[which(!is.na(m))] <- bps.ref.all$branchpoint_prob[m[which(!is.na(m))]]
   
-  bps.ref[rev(order(bps.ref[,which(colnames(bps.ref) == "U2_binding_energy")])),]
+  bps.ref <- bps.ref[rev(order(bps.ref[,which(colnames(bps.ref) == "U2_binding_energy")])),]
   
   m <- match(query$id, bps.ref$id)
   query$max_U2_REF[which(!is.na(m))] <- bps.ref$U2_binding_energy[m[which(!is.na(m))]]
@@ -81,18 +81,18 @@ predictionsToSummary <- function(query,
   m <- match(query$id, tab$Var1)
   query$BP_num_ALT[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
   
-  bps.alt[order(abs(bps.alt[,which(colnames(bps.alt) == "distance")])),]
+  bps.alt <- bps.alt[order(abs(bps.alt[,which(colnames(bps.alt) == "distance")])),]
   
   m <- match(query$id, bps.alt$id)
   query$dist_to_BP_ALT[which(!is.na(m))] <- bps.alt$distance[m[which(!is.na(m))]]
   
   bps.alt.all <- predictions[which(predictions$status == "ALT"),]
-  bps.alt.all[rev(order(bps.alt.all[,which(colnames(bps.alt.all) == "branchpoint_prob")])),]
+  bps.alt.all <- bps.alt.all[rev(order(bps.alt.all[,which(colnames(bps.alt.all) == "branchpoint_prob")])),]
   
   m <- match(query$id, bps.alt.all$id)
   query$max_prob_ALT[which(!is.na(m))] <- bps.alt.all$branchpoint_prob[m[which(!is.na(m))]]
   
-  bps.alt[rev(order(bps.alt[,which(colnames(bps.alt) == "U2_binding_energy")])),]
+  bps.alt <- bps.alt[rev(order(bps.alt[,which(colnames(bps.alt) == "U2_binding_energy")])),]
   
   m <- match(query$id, bps.alt$id)
   query$max_U2_ALT[which(!is.na(m))] <- bps.alt$U2_binding_energy[m[which(!is.na(m))]]
