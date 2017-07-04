@@ -347,6 +347,8 @@ getBranchpointSequence <- function(query, uniqueId = "test",
       }
       message("removing from analysis")
       query <- query[-rm]
+      nt.ref <- nt.ref[-rm]
+      nt.alt <- nt.alt[-rm]
     }
   }
 
