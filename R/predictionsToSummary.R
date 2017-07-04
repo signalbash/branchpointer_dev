@@ -103,13 +103,19 @@ predictionsToSummary <- function(query,
   # Any sites changed?
   bps.all <- predictions[index,]
   bps.all <- bps.all[,c('id','to_3prime_point','branchpoint_prob','status')]
-
-  change.bySite <- aggregate(branchpoint_prob ~ id+to_3prime_point, bps.all, diff)
   
-  deleted <- as.data.frame(table(change.bySite$id[
-    which(change.bySite$branchpoint_prob > probabilityChange)]))
-  created <- as.data.frame(table(change.bySite$id[
-    which(change.bySite$branchpoint_prob < (probabilityChange*-1))]))
+  bps.all$id_site <- paste0(bps.all$id,"_",bps.all$to_3prime_point)
+  bps.ref <- bps.all[bps.all$status=="REF",]
+  bps.alt <- bps.all[bps.all$status=="ALT",]
+  
+  
+  bps.ref$change.bySite <- (bps.ref$branchpoint_prob - 
+    bps.alt$branchpoint_prob[match(bps.alt$id_site, bps.ref$id_site)])
+  
+  deleted <- as.data.frame(table(bps.ref$id[
+    which(bps.ref$change.bySite > probabilityChange)]))
+  created <- as.data.frame(table(bps.ref$id[
+    which(bps.ref$change.bySite < (probabilityChange*-1))]))
   
   m <- match(query$id, deleted$Var1)
   query$deleted_n[which(!is.na(m))] <- deleted$Freq[m[which(!is.na(m))]]
