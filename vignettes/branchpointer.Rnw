@@ -114,7 +114,7 @@ queryIntronTable <- read.delim(queryIntronFile)
 head(queryIntronTable)
 @
 
-Query files can be read into branchpointer using readQueryFile(), and location information reteived for these sequences:
+Query files can be read into branchpointer using readQueryFile(), and location information retrieved for these sequences:
 
 <<read_introns, message=FALSE>>=
 queryIntron <- readQueryFile(queryIntronFile, 
@@ -127,13 +127,14 @@ Alternatively, to generate branchpoint window region queries by from the gtf ann
 
 Note that when searching for genes, transcripts, or exons, the ids used must be in the same format as in the annotation file (i.e. ENSG00000XXXXXX.X, ENST00000XXXXXX.X, ENSE00000XXXXXX.X). If you are unsure of an id, aliases can typically be found through ensembl (ensembl.org), or through a biomaRt query.
 <<make_intron, message=FALSE>>=
-queryIntronFromGTF <- makeBranchpointWindowForExons("ENSE00003541068.1", 
+queryIntronFromGTF <- makeBranchpointWindowForExons("ENSE00000939171.1", 
                                                     idType = "exon_id", 
                                                     exons = exons)
 head(queryIntronFromGTF)
 
 # for multiple ids:
-queryIntronFromGTF <- makeBranchpointWindowForExons(c("ENSE00003541068.1", "ENSE00003461148.1"), 
+queryIntronFromGTF <- makeBranchpointWindowForExons(c("ENSE00000939171.1", 
+                                                      "ENSE00001814242.1"), 
                                                     idType = "exon_id", 
                                                     exons = exons)
 head(queryIntronFromGTF)
@@ -172,7 +173,7 @@ head(branchpointPredictionsIntron)
 The window scores can be plotted using plotBranchpointWindow(), with optional plots for gene and isoform structure.
 The main panel displays the probability scores of each site within the branchpoint window. The opacity of the bars is representative of relative U2 binding energy (darker = stronger), and the lower panel shows U2 binding energy for all sites above the provided probability cutoff.
 
-BRCA2 intron (ENSE00002167182.1 - ENSE00003461148.1):
+BRCA2 intron (ENSE00000939169.1 - ENSE00000939171.1):
 <<brca2-plot>>=
 plotBranchpointWindow(queryIntron$id[2], 
                       branchpointPredictionsIntron,
@@ -185,7 +186,7 @@ plotBranchpointWindow(queryIntron$id[2],
 
 \section{Effects of SNPs on branchpoint annotations}
 In addition to locating branchpoints in intronic windows, branchpointer can be used to evaluate the local effects of SNPs on branchpoints.
-The general workflow is the same as for annotation of intronic windows, however \begin{verbatim}queryType="SNP"\end{verbatim} must be used.
+The general workflow is the same as for annotation of intronic windows, however queryType="SNP" must be used.
 
 \subsection{Read query and calculate location attributes}
 
@@ -199,7 +200,7 @@ querySNPTable <- read.delim(querySNPFile)
 head(querySNPTable)
 @
 
-When reading in large numbers of SNPs, it is reccomended to set filter = TRUE.
+When reading in exceptionally large numbers of SNPs, it is recommended to set filter = TRUE.
 This adds a pre-filtering step which removes any SNPs not located in an intron or 50nt from a 3' exon.
 
 Each SNP will be associated with the closest 3' exon. If SNPs are distal from branchpoint windows, the max\_dist argument will remove any greater than the specified distance. Filtering prior to exon associations can therefore speed up processing in instances where it is unknown if the majority of SNPs fall nearby branchpoint windows.
@@ -218,7 +219,7 @@ Alternatively, appropriate attributes can be pulled from biomart when a list of 
 <<read_snp_mart, message=FALSE>>=
 library(biomaRt)
 mart <- useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp",host="www.ensembl.org")
-querySNP <- makeBranchpointWindowForSNP(c("rs17000647","rs998731"), 
+querySNP <- makeBranchpointWindowForSNP(c("rs587776767","rs786205083"), 
                                         mart.snp = mart, 
                                         exons = exons, 
                                         filter  = FALSE)
@@ -251,15 +252,86 @@ head(querySNPSummary)
 
 The window scores in the reference and alternative sequences can be visualised using plotBranchpointWindow().
 
-rs17000647 in C4orf26 intron 1.
-<<rs17000647-plot>>=
-plotBranchpointWindow(querySNP$id[1], 
+rs587776767 in TH intron
+<<rs587776767-plot>>=
+plotBranchpointWindow(querySNP$id[2], 
                       branchpointPredictionsSNP,
                       probabilityCutoff = 0.52,
                       plotMutated = TRUE,
                       plotStructure = TRUE,
                       exons = exons)
 @
+\section{Performance}
+
+Branchpointer is vectorised where possible to decrease run times. 
+
+When reading in SNP queries, a prefiltering step can be applied by setting filter=TRUE. This step adds less than 10 seconds to readQueryFile(), and can reduce run times when the locations of SNPs are unknown [Figure 1].
+
+\begin{figure}[h!]
+    \centering
+    \textbf{}
+    \par\medskip
+    \includegraphics[scale=1]{readQueryFile_time.pdf}
+    \caption{Time taken for readQueryFile() on SNP query files}
+\end{figure}
+
+
+predictBranchpoints() is the rate limiting step, taking ~55 seconds per 100 region queries. This can be lowered using parallelisation by setting useParallel=TRUE and specifying the number of cores [Figure 2].
+
+\begin{figure}[h!]
+    \centering
+    \textbf{}
+    \par\medskip
+    \includegraphics[scale=1]{predictBranchpoints_time.pdf}
+    \caption{Time taken for predictBranchpoints() on region queries}
+\end{figure}
+
+
+\subsection{Example run times}
+<<run times, message=FALSE, eval=FALSE>>=
+
+# Step times for annotating branchpoints in introns:
+gtfToExons()
+# user  system elapsed 
+# 41.385   3.848  47.096 
+ 
+# Set 1. 294 lincRNA introns on chr22:
+makeBranchpointWindowForExons()
+# user  system elapsed 
+# 0.196   0.024   0.226
+predictBranchpoints()
+# user  system elapsed 
+# 208.934   4.157 225.849
+
+# Set 2. 3693 protein coding exons on chr22:
+makeBranchpointWindowForExons()
+# user  system elapsed 
+# 0.245   0.013   0.261 
+predictBranchpoints()
+# user   system  elapsed 
+# 2332.519   38.266 2482.032
+
+# Step times for annotating branchpoints with SNPs:
+# 29899 GWAS SNPS
+readQueryFile(filter = TRUE)
+# user  system elapsed 
+# 5.997   1.608   7.773
+readQueryFile(filter = FALSE)
+# user  system elapsed 
+# 1.744   0.427   2.339 
+
+# 298 filtered SNPS
+predictBranchpoints()
+# user  system elapsed 
+# 172.495   2.485 181.876 
+
+predictionsToSummary()
+# user  system elapsed 
+# 0.057   0.003   0.061
+@
+  
+Example scripts used to test times are found in
+inst/scripts, and were run on a 2.4GHz Macbook Pro with 8GB RAM
 
 \section{Session info}
 <<sessionInfo, eval=TRUE>>=
