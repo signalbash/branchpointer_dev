@@ -31,7 +31,7 @@ smallExons <- system.file("extdata","gencode.v26.annotation.small.gtf",package =
 exons <- gtfToExons(smallExons)
 
 mart.snp <- biomaRt::useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp", host="www.ensembl.org")
-query <- makeBranchpointWindowForSNP("rs17000647", mart.snp, exons)
+query <- makeBranchpointWindowForSNP("rs587776767", mart.snp, exons)
 }
 \author{
 Beth Signal
