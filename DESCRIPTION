@@ -1,13 +1,13 @@
 Package: branchpointer
 Type: Package
 Title: Prediction of intronic splicing branchpoints
-Version: 0.99.11
-Date: 2017-03-01
+Version: 1.3.0
+Date: 2017-06-10
 Author: Beth Signal
 Maintainer: Beth Signal <b.signal@garvan.org.au>
 Description: Predicts branchpoint probability for sites in intronic branchpoint windows. Queries can be supplied as intronic regions; or to evaluate the effects of mutations, SNPs.
 License: BSD_3_clause + file LICENSE
-LazyData: TRUE
+LazyData: FALSE
 Depends:
     caret,
     R(>= 3.4)
@@ -22,9 +22,11 @@ Imports:
     Biostrings,
     parallel,
     utils,
+    stats,
     BSgenome.Hsapiens.UCSC.hg38,
     rtracklayer,
     GenomicRanges,
+    GenomeInfoDb,
     IRanges,
     S4Vectors,
     data.table
