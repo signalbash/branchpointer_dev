@@ -236,10 +236,35 @@ plotBranchpointWindow <- function(queryName,
                            set = rep(c("REF","ALT"), each =50))
     mutPosition <- wholeSeq$pos[which(wholeSeq$nt[wholeSeq$set == "REF"] !=
                                     wholeSeq$nt[wholeSeq$set == "ALT"])]
-
+    
+    
     plot.seq.comparison <- ggplot(wholeSeq, aes_string(x = 'pos', y = 'set', col = 'nt',label = 'nt')) +
-      geom_rect(xmin = mutPosition - 0.5,xmax = mutPosition + 0.5, ymin = 0.5, ymax = 0.5 + 2,
-                col = NA, fill = "grey90") +
+        geom_rect(xmin = min(mutPosition) - 0.5,xmax = max(mutPosition) + 0.5, ymin = 0.5, ymax = 0.5 + 2,
+                  col = NA, fill = "grey90") 
+    
+    
+    if(any(colnames(predictions.snp.ref) == "extend")){
+        if(all(predictions.snp.ref$type=="deletion")){
+            delRange = c(predictions.snp.ref$to_3prime[1],
+                predictions.snp.ref$to_3prime[1] + (predictions.snp.ref$extend[1] -1))*-1
+            plot.seq.comparison <- plot.seq.comparison + geom_rect(xmin=min(delRange)-0.5, xmax=max(delRange)+0.5, ymin=1.5, ymax=2.5, fill="grey80", col=NA)
+                
+                
+        }else if(all(predictions.snp.ref$type=="insertion")){
+            insRange = c(predictions.snp.ref$to_3prime[1]+1,
+                         predictions.snp.ref$to_3prime[1] - predictions.snp.ref$extend[1])*-1
+            plot.seq.comparison <- plot.seq.comparison + geom_rect(xmin=min(insRange)-0.5, xmax=max(insRange)+0.5, ymin=0.5, ymax=1.5, fill="grey80", col=NA)
+            
+        }else{
+            refRange <- c(predictions.snp.ref$to_3prime[1], predictions.snp.ref$to_3prime[1]+nchar(predictions.snp.ref$ref_allele[1]) - 1)*-1
+            altRange <- c(predictions.snp.alt$to_3prime[1], predictions.snp.alt$to_3prime[1]+nchar(predictions.snp.alt$alt_allele[1]) - 1)*-1
+            plot.seq.comparison <- plot.seq.comparison + geom_rect(xmin=min(refRange)-0.5, xmax=max(refRange)+0.5, ymin=1.5, ymax=2.5, fill="grey80", col=NA)
+            plot.seq.comparison <- plot.seq.comparison + geom_rect(xmin=min(altRange)-0.5, xmax=max(altRange)+0.5, ymin=0.5, ymax=1.5, fill="grey80", col=NA)
+            
+        }
+    }
+
+    plot.seq.comparison <- plot.seq.comparison +
       geom_text(size = 4, family = "Courier") +
       scale_color_manual(values = mercer_nt_cols) +
       theme(legend.position = "none",
@@ -249,7 +274,9 @@ plotBranchpointWindow <- function(queryName,
       scale_x_continuous(limits = c(-50,-1)) +
       scale_y_discrete(labels = c("Alternative", "Reference")) +
       geom_rect(xmin = -44.5,xmax = -17.5, ymin = 0.5, ymax = 0.5 + 2, fill = NA, col ="black")
-
+    
+    plot.seq.comparison
+    
   }
 
   #plot gene/transcript structure
