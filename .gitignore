@@ -7,4 +7,5 @@ vignettes/branchpointer.synctex.gz
 vignettes/branchpointer.tex
 vignettes/branchpointer.toc
 vignettes/figure
-
+*.Rproj
+.Rproj.user
