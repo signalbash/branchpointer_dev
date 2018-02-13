@@ -421,23 +421,16 @@ getBranchpointSequence <- function(query, uniqueId = "test",
         
         
         #insertions
-        # queryStart[queryWindow$type == "insertion" &
-        #             as.logical(strand(queryWindow) == "+")] <-
-        #     queryStart[queryWindow$type == "insertion" &
-        #                 as.logical(strand(queryWindow) == "+")] + 1
-        # queryEnd[queryWindow$type == "insertion" &
-        #           as.logical(strand(queryWindow) == "+")] <-
-        #     queryEnd[queryWindow$type == "insertion" &
-        #               as.logical(strand(queryWindow) == "+")] + 1
-        # 
-        # queryStart[queryWindow$type == "insertion" &
-        #             as.logical(strand(queryWindow) == "-")] <-
-        #     queryStart[queryWindow$type == "insertion" &
-        #                 as.logical(strand(queryWindow) == "-")] - 1
-        # queryEnd[queryWindow$type == "insertion" &
-        #           as.logical(strand(queryWindow) == "-")] <-
-        #     queryEnd[queryWindow$type == "insertion" &
-        #               as.logical(strand(queryWindow) == "-")] - 1
+        # pos strand
+        queryStart <- (start(query) - start(queryWindow)) + 1
+        queryEnd <- (end(query) - start(queryWindow)) + 1
+        
+        # neg strand
+        queryEnd[isNeg] <-
+            (end(queryWindow)[isNeg] - start(query)[isNeg]) + 1
+        queryStart[isNeg] <-
+            (end(queryWindow)[isNeg] - end(query)[isNeg]) + 1
+        
         
         paste0(str_sub(queryWindow$seq, queryStart,queryEnd))
         
@@ -447,6 +440,8 @@ getBranchpointSequence <- function(query, uniqueId = "test",
                 stringr::str_sub(queryWindow$seq, 1, queryStart),
                 nt.alt,
                 stringr::str_sub(queryWindow$seq, queryEnd,-1))
+        str_sub(queryWindow$seq[1], 250, -250)
+        str_sub(newseqIns[2], 250, -250)
         
         queryWindow$seq[queryWindow$status == "ALT" &
                              queryWindow$type == "insertion"] <-
@@ -480,14 +475,16 @@ getBranchpointSequence <- function(query, uniqueId = "test",
             (queryAllPoints$to_3prime + queryAllPoints$to_5prime + 
                  (width(query) - 1)) - queryAllPoints$to_3prime_point
         
+        
+        
         # need to rework
-        testSite <- rep(rep(start(query)), 27)
+        testSite <- rep(start(query), 27)
         posStrand <- which(as.logical(strand(queryAllPoints) == "+"))
         negStrand <- which(as.logical(strand(queryAllPoints) == "-"))
-        testSite[posStrand] <- rep(rep(end(query)), 27)[posStrand]
-        testSite[posStrand] <- (testSite - 18 +
-                                    queryAllPoints$to_3prime_point)[posStrand]
-        testSite[negStrand] <- (testSite + 18 -
+        testSite[posStrand] <- rep(end(query), 27)[posStrand]
+        testSite[posStrand] <- (testSite - queryAllPoints$to_3prime_point +
+                                    queryAllPoints$to_3prime)[posStrand]
+        testSite[negStrand] <- (testSite - queryAllPoints$to_3prime +
                                     queryAllPoints$to_3prime_point)[negStrand]
         mcols(queryAllPoints)$test_site <- testSite
         
