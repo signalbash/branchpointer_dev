@@ -174,7 +174,7 @@ getPPT <- function(attributes){
 #' @param query branchpointer query GenomicRanges
 #' @param rmChr remove "chr" before chromosome names before writing bed file.
 #' Required if genome sequence names do not contain "chr"
-#' @param queryType type of branchpointer query. "SNP" or "region".
+#' @param queryType type of branchpointer query. "SNP" or "region" or "indel".
 #' @param genome .fa genome file location
 #' @param bedtoolsLocation bedtools binary location (which bedtools)
 #' @param uniqueId unique string identifier for intermediate .bed and .fa files.
@@ -222,240 +222,465 @@ getBranchpointSequence <- function(query, uniqueId = "test",
     }
   }
 
-  #make bed format file
-  if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
-    stop("please specify queryType as \"region\" or \"SNP\"")
-  }else if (queryType == "SNP") {
-    bed <- query
-    start(ranges(bed)) <- as.integer(start(ranges(bed)) - 1)
-  }else if (queryType == "region") {
-    bed <- query
-    start(ranges(bed))[as.logical(strand(bed)== "+")] <-
-      end(ranges(bed))[as.logical(strand(bed)== "+")]
-    start(ranges(bed)) <- start(ranges(bed)) - 1
-    width(ranges(bed)) <- 2
-  }
-
-  #extend bed file to cover +/- 250 nt from each query point
-  start(ranges(bed))[which(as.logical(strand(bed) == "+"))] <-
-    as.integer(start(ranges(bed)) - 250 -
-                 (44 - query$to_3prime))[which(as.logical(strand(bed) == "+"))]
-  start(ranges(bed))[which(as.logical(strand(bed) == "-"))] <-
-    as.integer(start(ranges(bed)) - 277 +
-                 (44 - query$to_3prime))[which(as.logical(strand(bed) == "-"))]
-  width(ranges(bed))  <- 529
-
-
-  if(!is.na(genome) & !missing(bedtoolsLocation)){
-    #convert to .fasta using bedtools
-    bedTable <- data.frame(seqnames(bed),
-                           start(ranges(bed)),
-                           end(ranges(bed)),
-                           bed$id,
-                           score=0,
-                           strand(bed))
-
-    if (rmChr == TRUE) {
-      bedTable[,1] <- gsub("chr","", bedTable[,1])
+    #make bed format file
+    if (missing(queryType) |
+        !(queryType %in% c("SNP", "region", "indel"))) {
+        stop("please specify queryType as \"region\" or \"SNP\" or \"indel\"")
     }
-
-    utils::write.table(
-      bedTable, sep = "\t", file = paste0(workingDirectory,"/mutation_",
-                                          uniqueId,".bed"),
-      row.names = FALSE,col.names = FALSE,quote = FALSE)
-    cmd <- paste0(
-      bedtoolsLocation," getfasta -fi ", genome,
-      " -bed ",workingDirectory,"/mutation_",uniqueId,".bed -fo ",
-      workingDirectory,"/mutation_",uniqueId,".fa -name -s")
-    system(cmd)
     
-    info <- file.info(paste0(workingDirectory,"/mutation_",uniqueId,".fa"))
-    if(info$size > 0){
-      fasta <-
-        data.table::fread(paste0(workingDirectory,"/mutation_",uniqueId,".fa"),
-                          header = FALSE, stringsAsFactors = FALSE)
-      fasta <- as.data.frame(fasta)
-      system(paste0("rm -f ",workingDirectory,"/mutation_",uniqueId,"*"))
-  
-      s <- fasta[seq(2,dim(fasta)[1],by = 2),1]
-      mcols(query)$seq <- s
+    if (queryType %in% c("SNP", "region")) {
+        if (queryType == "SNP") {
+            bed <- query
+            start(ranges(bed)) <- as.integer(start(ranges(bed)) - 1)
+        } else if (queryType == "region") {
+            bed <- query
+            start(ranges(bed))[as.logical(strand(bed) == "+")] <-
+                end(ranges(bed))[as.logical(strand(bed) == "+")]
+            start(ranges(bed)) <- start(ranges(bed)) - 1
+            width(ranges(bed)) <- 2
+        }
+        #extend bed file to cover +/- 250 nt from each query point
+        start(ranges(bed))[which(as.logical(strand(bed) == "+"))] <-
+            as.integer(start(ranges(bed)) - 250 -
+                           (44 - query$to_3prime))[which(as.logical(strand(bed) == "+"))]
+        start(ranges(bed))[which(as.logical(strand(bed) == "-"))] <-
+            as.integer(start(ranges(bed)) - 277 +
+                           (44 - query$to_3prime))[which(as.logical(strand(bed) == "-"))]
+        width(ranges(bed))  <- 529
+    }else if (queryType == "indel") {
+        queryWindow <- query
+        isNeg <- which(as.logical(strand(query) == "-"))
+        isPos <- which(as.logical(strand(query) == "+"))
+        # neg strand
+        newStart <-
+            start(queryWindow)[isNeg] - query$to_3prime[isNeg] + 18
+        newEnd <- newStart + 26
+        ranges(queryWindow)[isNeg] <-
+            IRanges(start = newStart, end = newEnd)
+        #pos strand
+        newStart <-
+            end(queryWindow)[isPos] + query$to_3prime[isPos] - 44
+        newEnd <- newStart + 26
+        ranges(queryWindow)[isPos] <-
+            IRanges(start = newStart, end = newEnd)
+        
+        queryWindow.ref <- queryWindow
+        queryWindow.alt <- queryWindow
+        
+        queryWindow.ref$status <- "REF"
+        queryWindow.alt$status <- "ALT"
+        
+        refWidth <- nchar(queryWindow.alt$ref_allele)
+        refWidth[queryWindow.alt$ref_allele == "-"] <- 0
+        altWidth <- nchar(queryWindow.alt$alt_allele)
+        altWidth[queryWindow.alt$alt_allele == "-"] <- 0
+        
+        extend <- (refWidth - altWidth)
+        
+        end(queryWindow.alt)[isNeg] <-
+            (end(queryWindow.alt)[isNeg] + extend[isNeg]) + 250
+        start(queryWindow.alt[isNeg]) <-
+            start(queryWindow.alt[isNeg]) - 250
+        
+        
+        canExtendP <- which(extend[isPos] > -27)
+        start(queryWindow.alt)[isPos] <-
+            (start(queryWindow.alt)[isPos] - extend[isPos]) - 250
+        end(queryWindow.alt)[isPos] <-
+            end(queryWindow.alt)[isPos] + 250
+        
+        start(queryWindow.ref) <- start(queryWindow.ref) - 250
+        end(queryWindow.ref) <- end(queryWindow.ref) + 250
+        
+        queryWindow.alt$extend <- extend
+        queryWindow.ref$extend <- extend
+        
+        queryWindow <- c(queryWindow.ref, queryWindow.alt)
+        windowRanges <- ranges(queryWindow)
+        query <- c(query, query)
+        
+        bed <- queryWindow
+    }
+    
+    # get nt sequences
+    if (!is.na(genome) & !missing(bedtoolsLocation)) {
+        #convert to .fasta using bedtools
+        bedTable <- data.frame(seqnames(bed),
+                               start(ranges(bed)),
+                               end(ranges(bed)),
+                               bed$id,
+                               score = 0,
+                               strand(bed))
+        
+        if (rmChr == TRUE) {
+            bedTable[, 1] <- gsub("chr", "", bedTable[, 1])
+        }
+        
+        utils::write.table(
+            bedTable,
+            sep = "\t",
+            file = paste0(workingDirectory, "/mutation_", uniqueId, ".bed"),
+            row.names = FALSE, col.names = FALSE, quote = FALSE)
+        cmd <- paste0(bedtoolsLocation, " getfasta -fi ",
+            genome, " -bed ", workingDirectory, "/mutation_", uniqueId,
+            ".bed -fo ", workingDirectory, "/mutation_", uniqueId, 
+            ".fa -name -s")
+        system(cmd)
+        
+        info <-
+            file.info(paste0(workingDirectory, "/mutation_", uniqueId, ".fa"))
+        if (info$size > 0) {
+            fasta <-
+                data.table::fread(
+                    paste0(workingDirectory, "/mutation_", uniqueId, ".fa"),
+                    header = FALSE,
+                    stringsAsFactors = FALSE)
+            fasta <- as.data.frame(fasta)
+            system(paste0("rm -f ", workingDirectory, 
+                          "/mutation_", uniqueId, "*"))
+            
+            s <- fasta[seq(2, dim(fasta)[1], by = 2), 1]
+            mcols(query)$seq <- s
+        } else{
+            stop("cannot retrieve fa sequence, 
+                 please check your exon annotation and genome .fa")
+        }
+        
     }else{
-      stop("cannot retrieve fa sequence, please check your exon annotation and genome .fa")
+        # need to +1 for BSgenomes sequence retreval
+        # ranges given are bedtools (legacy)
+        
+        if (queryType %in% c("SNP", "region")) {
+            start(ranges(bed)) <- start(ranges(bed)) + 1
+            width(ranges(bed))  <- 528
+        }
+        
+        # check if chromosomes need to renamed
+        seqlevels.genome <- GenomeInfoDb::seqlevels(BSgenome)
+        seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
+        
+        # used chromosomes
+        seqnames.bed <- as.character(GenomeInfoDb::seqnames(bed))
+        
+        if (!(all(seqnames.bed %in% seqlevels.genome))) {
+            # try adding/removing chr from bed
+            if (!all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")) {
+                GenomeInfoDb::seqlevels(bed) <- paste0("chr", seqlevels.bed)
+            } else if (all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")) {
+                GenomeInfoDb::seqlevels(bed) <- gsub("chr", "", seqlevels.bed)
+            }
+            
+            seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
+            seqnames.bed <-
+                as.character(GenomeInfoDb::seqnames(bed))
+            
+            # if that doesn't fix the issue, break
+            if (!(all(seqnames.bed %in% seqlevels.genome))) {
+                stop("Chromosome names of query and genome do not match")
+            }
+        }
+        
+        bed.seq <-
+            suppressWarnings(Biostrings::getSeq(BSgenome, bed))
     }
+    
+    if (queryType == "indel") {
+        mcols(queryWindow)$seq <- c(as.character(bed.seq))
+        isNeg <- which(as.logical(strand(query) == "-"))
+        isPos <- which(as.logical(strand(query) == "+"))
+        
+        # pos strand
+        queryStart <- (start(query) - start(queryWindow)) + 1
+        queryEnd <- (end(query) - start(queryWindow)) + 1
+        
+        # neg strand
+        queryEnd[isNeg] <-
+            (end(queryWindow)[isNeg] - start(query)[isNeg]) + 1
+        queryStart[isNeg] <-
+            (end(queryWindow)[isNeg] - end(query)[isNeg]) + 1
+        
+        #strand alt alleles
+        nt.alt <- as.character(query$alt_allele)
+        
+        #change to compliment if on negative strand
+        nt.alt[which(as.logical(strand(query) == "-"))] <-
+            as.character(Biostrings::reverseComplement(
+                Biostrings::DNAStringSet(
+                    nt.alt[which(as.logical(strand(query) == "-"))])))
+        
+        # deletions
+        newseq <-
+            paste0(
+                stringr::str_sub(queryWindow$seq, 1, queryStart - 1),
+                stringr::str_sub(queryWindow$seq, queryEnd + 1,-1))
+        
+        queryWindow$seq[queryWindow$status == "ALT" &
+                             queryWindow$type == "deletion"] <-
+            newseq[queryWindow$status == "ALT" &
+                       queryWindow$type == "deletion"]
+        
+        
+        #insertions
+        # queryStart[queryWindow$type == "insertion" &
+        #             as.logical(strand(queryWindow) == "+")] <-
+        #     queryStart[queryWindow$type == "insertion" &
+        #                 as.logical(strand(queryWindow) == "+")] + 1
+        # queryEnd[queryWindow$type == "insertion" &
+        #           as.logical(strand(queryWindow) == "+")] <-
+        #     queryEnd[queryWindow$type == "insertion" &
+        #               as.logical(strand(queryWindow) == "+")] + 1
+        # 
+        # queryStart[queryWindow$type == "insertion" &
+        #             as.logical(strand(queryWindow) == "-")] <-
+        #     queryStart[queryWindow$type == "insertion" &
+        #                 as.logical(strand(queryWindow) == "-")] - 1
+        # queryEnd[queryWindow$type == "insertion" &
+        #           as.logical(strand(queryWindow) == "-")] <-
+        #     queryEnd[queryWindow$type == "insertion" &
+        #               as.logical(strand(queryWindow) == "-")] - 1
+        
+        paste0(str_sub(queryWindow$seq, queryStart,queryEnd))
+        
+        
+        newseqIns <-
+            paste0(
+                stringr::str_sub(queryWindow$seq, 1, queryStart),
+                nt.alt,
+                stringr::str_sub(queryWindow$seq, queryEnd,-1))
+        
+        queryWindow$seq[queryWindow$status == "ALT" &
+                             queryWindow$type == "insertion"] <-
+            newseqIns[queryWindow$status == "ALT" &
+                          queryWindow$type == "insertion"]
+        # indels
+        newseqIndel <-
+            paste0(
+                stringr::str_sub(queryWindow$seq, 1, queryStart - 1),
+                nt.alt,
+                stringr::str_sub(queryWindow$seq, queryEnd + 1,-1)
+            )
+        
+        queryWindow$seq[queryWindow$status == "ALT" &
+                             queryWindow$type == "indel"] <-
+            newseqIndel[queryWindow$status == "ALT" &
+                            queryWindow$type == "indel"]
+        
+        seqs <- data.frame(seq = rep(queryWindow$seq, 27))
+        seqs$i <- rep(18:44, each = length(queryWindow$seq))
+        seqs <- apply(seqs, 1, function(x)
+            substr(x[1],
+                   (as.numeric(x[2]) - 17),
+                   (as.numeric(x[2]) - 17) + 500))
 
-  }else{
-    # need to +1 for BSgenomes sequence retreval
-    # ranges given are bedtools (legacy)
+        queryAllPoints <- do.call("c", as.list(rep(queryWindow, 27)))
+        queryAllPoints$seq <- seqs
+        mcols(queryAllPoints)$to_3prime_point <-
+            rep(44:18, each = length(queryWindow$seq))
+        mcols(queryAllPoints)$to_5prime_point <-
+            (queryAllPoints$to_3prime + queryAllPoints$to_5prime + 
+                 (width(query) - 1)) - queryAllPoints$to_3prime_point
+        
+        # need to rework
+        testSite <- rep(rep(start(query)), 27)
+        posStrand <- which(as.logical(strand(queryAllPoints) == "+"))
+        negStrand <- which(as.logical(strand(queryAllPoints) == "-"))
+        testSite[posStrand] <- rep(rep(end(query)), 27)[posStrand]
+        testSite[posStrand] <- (testSite - 18 +
+                                    queryAllPoints$to_3prime_point)[posStrand]
+        testSite[negStrand] <- (testSite + 18 -
+                                    queryAllPoints$to_3prime_point)[negStrand]
+        mcols(queryAllPoints)$test_site <- testSite
+        
+        extNeg <- which(
+            queryAllPoints$status == "ALT" &
+                queryAllPoints$to_3prime < queryAllPoints$to_3prime_point &
+                as.logical(strand(queryAllPoints) == "-"))
+        extPos <- which(
+            queryAllPoints$status == "ALT" &
+                queryAllPoints$to_3prime < queryAllPoints$to_3prime_point &
+                as.logical(strand(queryAllPoints) == "+"))
+        
+        queryAllPoints$test_site[extNeg] <-
+            queryAllPoints$test_site[extNeg] + queryAllPoints$extend[extNeg]
+        
+        queryAllPoints$test_site[extPos] <-
+            queryAllPoints$test_site[extPos] - queryAllPoints$extend[extPos]
+        
+    }else{
+        mcols(query)$seq <- c(as.character(bed.seq))
+        ##mutate at SNP location
+        if (queryType == "SNP") {
+            #location of SNP
+            loc <- 44 - query$to_3prime
+            nt.ref <- as.character(query$ref_allele)
+            nt.alt <- as.character(query$alt_allele)
+            
+            #change to compliment if on negative strand
+            nt.ref[which(as.logical(strand(query) == "-"))] <-
+                as.character(Biostrings::complement(
+                    Biostrings::DNAStringSet(
+                        nt.ref[which(as.logical(strand(query) == "-"))])))
+            nt.alt[which(as.logical(strand(query) == "-"))] <-
+                as.character(Biostrings::complement(
+                    Biostrings::DNAStringSet(
+                        nt.alt[which(as.logical(strand(query) == "-"))])))
+            
+            #check ref allele
+            refAlleleCorrect <-
+                substr(query$seq, 251 + (loc), 251 + (loc)) == nt.ref
+            
+            if (any(!refAlleleCorrect)) {
+                rm <- which(refAlleleCorrect == FALSE)
+                if (all(refAlleleCorrect[which(as.logical(
+                    strand(query) == "-"))] == FALSE) &
+                    all(refAlleleCorrect[which(as.logical(
+                        strand(query) == "+"))])) {
+                    message("reference alleles are incorrect 
+                            for all negative strand introns")
+                    message("please input alleles as positive strand sequences")
+                } else{
+                    message("reference alleles do not match sequence for:")
+                    message(paste(query$id[rm], collapse = "\n"))
+                }
+                message("removing from analysis")
+                query <- query[-rm]
+                nt.ref <- nt.ref[-rm]
+                nt.alt <- nt.alt[-rm]
+            }
+        }
+        
+        #create 501nt sequences with each query point centered at 251
+        seqs <- data.frame(seq = rep(query$seq, 27))
+        seqs$i <- rep(18:44, each = length(query$seq))
+        seqs <- apply(seqs, 1, function(x)
+            substr(x[1],
+                   (as.numeric(x[2]) - 17),
+                   (as.numeric(x[2]) - 17) + 500))
+        
+        if (queryType == "SNP") {
+            #create mutated sequence
+            s.mut <-
+                paste0(substr(query$seq, 1, 250 + (loc)),
+                       nt.alt,
+                       substr(query$seq, 252 + (loc), 528))
+            
+            
+            seqs.mut <- data.frame(seq = rep(s.mut, 27))
+            seqs.mut$i <- rep(18:44, each = length(s.mut))
+            seqs.mut <- apply(seqs.mut, 1, function(x)
+                substr(x[1],
+                       (as.numeric(x[2]) -
+                            17),
+                       (as.numeric(x[2]) -
+                            17) + 500))
+            
+            queryAllPoints <- rep(query, 27)
+            queryAllPoints <- rep(queryAllPoints, 2)
+            
+            mcols(queryAllPoints)$status <-
+                c(rep("REF", length(seqs)),
+                  rep("ALT", length(seqs.mut)))
+            
+            queryAllPoints$seq <- c(seqs, seqs.mut)
+            mcols(queryAllPoints)$to_3prime_point <-
+                rep(rep(44:18, each = length(query$id)), 2)
+        } else{
+            queryAllPoints <- do.call("c", as.list(rep(query, 27)))
+            mcols(queryAllPoints)$status <- rep("REF", length(seqs))
+            queryAllPoints$seq <- seqs
+            mcols(queryAllPoints)$to_3prime_point <-
+                rep(44:18, each = length(query$seq))
+        }
+        
+        mcols(queryAllPoints)$to_5prime_point <-
+            (queryAllPoints$to_3prime + queryAllPoints$to_5prime) -
+            queryAllPoints$to_3prime_point
+        
+        testSite <- start(ranges(queryAllPoints))
+        posStrand <-
+            which(as.logical(strand(queryAllPoints) == "+"))
+        negStrand <-
+            which(as.logical(strand(queryAllPoints) == "-"))
+        testSite[posStrand] <-
+            end(ranges(queryAllPoints))[posStrand]
+        testSite[posStrand] <-
+            (testSite + queryAllPoints$to_3prime -
+                 queryAllPoints$to_3prime_point)[posStrand]
+        testSite[negStrand] <-
+            (testSite - queryAllPoints$to_3prime +
+                 queryAllPoints$to_3prime_point)[negStrand]
+        mcols(queryAllPoints)$test_site <- testSite
+    }
+    #get sequence identity at position -5 to +5 relative to testing point
+    mcols(queryAllPoints)$seq_neg5 <-
+        factor(substr(queryAllPoints$seq, 246, 246),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_neg4 <-
+        factor(substr(queryAllPoints$seq, 247, 247),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_neg3 <-
+        factor(substr(queryAllPoints$seq, 248, 248),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_neg2 <-
+        factor(substr(queryAllPoints$seq, 249, 249),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_neg1 <-
+        factor(substr(queryAllPoints$seq, 250, 250),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos0 <-
+        factor(substr(queryAllPoints$seq, 251, 251),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos1 <-
+        factor(substr(queryAllPoints$seq, 252, 252),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos2 <-
+        factor(substr(queryAllPoints$seq, 253, 253),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos3 <-
+        factor(substr(queryAllPoints$seq, 254, 254),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos4 <-
+        factor(substr(queryAllPoints$seq, 255, 255),
+               levels = c("A", "C", "G", "T"))
+    mcols(queryAllPoints)$seq_pos5 <-
+        factor(substr(queryAllPoints$seq, 256, 256),
+               levels = c("A", "C", "G", "T"))
     
-    start(ranges(bed)) <- start(ranges(bed)) +1
-    width(ranges(bed))  <- 528
+    #find canonical AG splice dinucleotides
+    f <- gregexpr("AG", substr(queryAllPoints$seq, 252, 501), perl = TRUE)
     
-    # check if chromosomes need to renamed
-    seqlevels.genome <- GenomeInfoDb::seqlevels(BSgenome)
-    seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
-    
-    # used chromosomes 
-    seqnames.bed <- as.character(GenomeInfoDb::seqnames(bed))
-    
-    if(!(all(seqnames.bed %in% seqlevels.genome))){
-      
-      # try adding/removing chr from bed
-      if(!all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")){
-         GenomeInfoDb::seqlevels(bed) <- paste0("chr", seqlevels.bed)
-      }else if(all(stringr::str_sub(seqlevels.bed, 1, 3) == "chr")){
-         GenomeInfoDb::seqlevels(bed) <- gsub("chr", "", seqlevels.bed)
-      }
-      
-      seqlevels.bed <- GenomeInfoDb::seqlevels(bed)
-      seqnames.bed <- as.character(GenomeInfoDb::seqnames(bed))
-      
-      # if that doesn't fix the issue, break
-      if(!(all(seqnames.bed %in% seqlevels.genome))){
-        stop("Chromosome names of query and genome do not match")
-      }
+    if (useParallel) {
+        cluster <- parallel::makeCluster(cores)
+        canonHits <- parallel::parLapply(cluster, f, getCanonical3SS)
+        pyra <-
+            parallel::parLapply(cluster, queryAllPoints, getPPT)
+        parallel::stopCluster(cluster)
+    } else{
+        canonHits <- lapply(f, getCanonical3SS)
+        pyra <- lapply(queryAllPoints, getPPT)
     }
     
-    bed.seq <- suppressWarnings(Biostrings::getSeq(BSgenome, bed))
-    mcols(query)$seq <- as.character(bed.seq)
-  }
-
-  ##mutate at SNP location
-  if (queryType == "SNP") {
-    #location of SNP
-    loc <- 44 - query$to_3prime
-    nt.ref <- as.character(query$ref_allele)
-    nt.alt <- as.character(query$alt_allele)
-
-    #change to compliment if on negative strand
-    nt.ref[which(as.logical(strand(query) == "-"))] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.ref[which(as.logical(strand(query) == "-"))])))
-    nt.alt[which(as.logical(strand(query) == "-"))] <-
-      as.character(Biostrings::complement(Biostrings::DNAStringSet(nt.alt[which(as.logical(strand(query) == "-"))])))
-
-    #check ref allele
-    refAlleleCorrect <- substr(query$seq, 251 + (loc),251 + (loc)) == nt.ref
-
-    if (any(!refAlleleCorrect)) {
-      rm <- which(refAlleleCorrect == FALSE)
-      if (all(refAlleleCorrect[which(as.logical(strand(query) == "-"))] == FALSE) &
-          all(refAlleleCorrect[which(as.logical(strand(query) == "+"))])) {
-        message("reference alleles are incorrect for all negative strand introns")
-        message("please input alleles as positive strand sequences")
-      }else{
-        message("reference alleles do not match sequence for:")
-        message(paste(query$id[rm], collapse = "\n"))
-      }
-      message("removing from analysis")
-      query <- query[-rm]
-      nt.ref <- nt.ref[-rm]
-      nt.alt <- nt.alt[-rm]
-    }
-  }
-
-  #create 501nt sequences with each query point centered at 251
-  seqs <- data.frame(seq = rep(query$seq, 27))
-  seqs$i <- rep(18:44, each = length(query$seq))
-  seqs <- apply(seqs, 1, function(x) substr(x[1],
-                                           (as.numeric(x[2])-17),
-                                           (as.numeric(x[2])-17) + 500))
-
-  if (queryType == "SNP") {
-    #create mutated sequence
-    s.mut <-
-      paste0(substr(query$seq, 1,250 + (loc)), nt.alt,
-             substr(query$seq, 252 + (loc),528))
-
-
-    seqs.mut <- data.frame(seq = rep(s.mut, 27))
-    seqs.mut$i <- rep(18:44, each = length(s.mut))
-    seqs.mut <- apply(seqs.mut, 1, function(x) substr(x[1],
-                                              (as.numeric(x[2])-17),
-                                              (as.numeric(x[2])-17) + 500))
-
-    queryAllPoints <- rep(query, 27)
-    queryAllPoints <- rep(queryAllPoints, 2)
-
-    mcols(queryAllPoints)$status <- c(rep("REF", length(seqs)),
-                                               rep("ALT", length(seqs.mut)))
-
-    queryAllPoints$seq <- c(seqs, seqs.mut)
-    mcols(queryAllPoints)$to_3prime_point <-
-      rep(rep(44:18,each = length(query$id)),2)
-  }else{
-    queryAllPoints <- do.call("c",as.list(rep(query, 27)))
-    mcols(queryAllPoints)$status <- rep("REF", length(seqs))
-    queryAllPoints$seq <- seqs
-    mcols(queryAllPoints)$to_3prime_point <-
-      rep(44:18,each = length(query$seq))
-  }
-
-  mcols(queryAllPoints)$to_5prime_point <-
-    (queryAllPoints$to_3prime + queryAllPoints$to_5prime) -
-    queryAllPoints$to_3prime_point
-
-  testSite <- start(ranges(queryAllPoints))
-  posStrand <- which(as.logical(strand(queryAllPoints) == "+"))
-  negStrand <- which(as.logical(strand(queryAllPoints) == "-"))
-  testSite[posStrand] <- end(ranges(queryAllPoints))[posStrand]
-  testSite[posStrand] <- (testSite + queryAllPoints$to_3prime -
-                            queryAllPoints$to_3prime_point)[posStrand]
-  testSite[negStrand] <- (testSite - queryAllPoints$to_3prime +
-                            queryAllPoints$to_3prime_point)[negStrand]
-  mcols(queryAllPoints)$test_site <- testSite
-
-  #get sequence identity at position -5 to +5 relative to testing point
-  mcols(queryAllPoints)$seq_pos0 <-
-    factor(substr(queryAllPoints$seq,251,251), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_pos1 <-
-    factor(substr(queryAllPoints$seq,252,252), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_pos2 <-
-    factor(substr(queryAllPoints$seq,253,253), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_pos3 <-
-    factor(substr(queryAllPoints$seq,254,254), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_pos4 <-
-    factor(substr(queryAllPoints$seq,255,255), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$ seq_pos5 <-
-    factor(substr(queryAllPoints$seq,256,256), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_neg1 <-
-    factor(substr(queryAllPoints$seq,250,250), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_neg2 <-
-    factor(substr(queryAllPoints$seq,249,249), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_neg3 <-
-    factor(substr(queryAllPoints$seq,248,248), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_neg4 <-
-    factor(substr(queryAllPoints$seq,247,247), levels = c("A","C","G","T"))
-  mcols(queryAllPoints)$seq_neg5 <-
-    factor(substr(queryAllPoints$seq,246,246), levels = c("A","C","G","T"))
-
-  #find canonical AG splice dinucleotides
-  f <- gregexpr("AG",substr(queryAllPoints$seq, 252,501),perl = TRUE)
-
-  if (useParallel) {
-    cluster <- parallel::makeCluster(cores)
-    canonHits <- parallel::parLapply(cluster,f, getCanonical3SS)
-    pyra <-
-        parallel::parLapply(cluster,queryAllPoints, getPPT)
-    parallel::stopCluster(cluster)
-  }else{
-    canonHits <- lapply(f, getCanonical3SS)
-    pyra <- lapply(queryAllPoints, getPPT)
-  }
-
-  canon <- matrix(unlist(canonHits), ncol = 5, byrow = TRUE)
-  canon <- as.data.frame(canon, stringsAsFactors=FALSE)
-  colnames(canon) <-
-    c("canon_hit1", "canon_hit2", "canon_hit3", "canon_hit4", "canon_hit5")
-
-  mcols(queryAllPoints) <- cbind(mcols(queryAllPoints), canon)
-  mcols(queryAllPoints)$ppt_start <- unlist(lapply(pyra, "[[", 1))
-  mcols(queryAllPoints)$ppt_run_length <- unlist(lapply(pyra, "[[", 2))
-
-  mcols(queryAllPoints)$seq <-
-    stringr::str_sub(queryAllPoints$seq, (251 +
-                       queryAllPoints$to_3prime_point - 50),(250 +
-    queryAllPoints$to_3prime_point))
-
-  return(queryAllPoints)
+    canon <- matrix(unlist(canonHits), ncol = 5, byrow = TRUE)
+    canon <- as.data.frame(canon, stringsAsFactors = FALSE)
+    colnames(canon) <-
+        c("canon_hit1",
+          "canon_hit2",
+          "canon_hit3",
+          "canon_hit4",
+          "canon_hit5")
+    
+    mcols(queryAllPoints) <- cbind(mcols(queryAllPoints), canon)
+    mcols(queryAllPoints)$ppt_start <- unlist(lapply(pyra, "[[", 1))
+    mcols(queryAllPoints)$ppt_run_length <-
+        unlist(lapply(pyra, "[[", 2))
+    
+    mcols(queryAllPoints)$seq <-
+        stringr::str_sub(
+            queryAllPoints$seq,
+            (251 + queryAllPoints$to_3prime_point - 50),
+            (250 + queryAllPoints$to_3prime_point))
+    
+    return(queryAllPoints)
 }
 
 #' Predict branchpoint probability scores
@@ -464,7 +689,7 @@ getBranchpointSequence <- function(query, uniqueId = "test",
 #' @param query branchpointer query GenomicRanges
 #' @param rmChr remove "chr" before chromosome names before writing bed file.
 #' Required if genome sequence names do not contain "chr"
-#' @param queryType type of branchpointer query. "SNP" or "region".
+#' @param queryType type of branchpointer query. "SNP" or "region" or "indel".
 #' @param genome .fa genome file location
 #' @param bedtoolsLocation bedtools binary location (which bedtools)
 #' @param uniqueId unique string identifier for intermediate .bed and .fa files.
