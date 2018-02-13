@@ -38,4 +38,6 @@ Functions combined and renamed
 Updated model to single gbm
 Bug fixes
 
+Version 1.4.0
+Added functionality to process insertions, deletions, and indels
 
