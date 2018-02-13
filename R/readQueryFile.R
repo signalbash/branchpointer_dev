@@ -34,7 +34,7 @@ exonsToIntrons <- function(exons, maxDist = 50){
 #' @param query GenomicRangesquery
 #' @param exons GenomicRanges containing exon co-ordinates.
 #' Should be produced by gtfToExons()
-#' @param queryType type of query. "SNP" or "region"
+#' @param queryType type of query. "SNP" or "region" or "indel"
 #' @return GenomicRanges with distance to the closest 3' and 5' exons,
 #' whether these exons are part of the same gene (i.e is the location intronic),
 #' and the identifiers for the 3' and 5' exons.
@@ -51,15 +51,17 @@ getExonDists <- function(query, exons, queryType){
   posInd <- which(as.logical(strand(query) == '+'))
   
   queryPoint <- query
-  
-  width(ranges(queryPoint))[negInd] <- 1
-  end <- end(ranges(queryPoint))[posInd]
-  start(ranges(queryPoint[posInd])) <- end
-  width(ranges(queryPoint[posInd])) <- 1
+  if(queryType %in% c("SNP", "region")){
+      width(ranges(queryPoint))[negInd] <- 1
+      end <- end(ranges(queryPoint))[posInd]
+      start(ranges(queryPoint[posInd])) <- end
+      width(ranges(queryPoint[posInd])) <- 1
+  }
   
   f <- GenomicRanges::follow(queryPoint,exons)
   gene5 <- exons$gene_id[f]
   exon5 <- exons$exon_id[f]
+  
   
   keep <- which(!is.na(f))
   f <- f[keep]
@@ -93,7 +95,7 @@ getExonDists <- function(query, exons, queryType){
 #' @param query branchpointer query GenomicRanges
 #' must have chromosome at position 2, genomic co-ordinate at position 3,
 #' and strand at position 4.
-#' @param queryType type of query file (\code{"SNP"} or \code{"region"})
+#' @param queryType type of query file (\code{"SNP"} or \code{"region"} or \code{"indel"})
 #' @param exons data.frame containing exon co-ordinates.
 #' Should be produced by gtfToExons()
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
@@ -105,9 +107,9 @@ getExonDists <- function(query, exons, queryType){
 
 getQueryLoc <- function(query, queryType, maxDist=50, filter=TRUE, exons){
   
-  if(missing(queryType) | !(queryType %in% c("SNP", "region"))){
+  if(missing(queryType) | !(queryType %in% c("SNP", "region", "indel"))){
     
-    stop("please specify queryType as \"region\" or \"SNP\"")
+    stop("please specify query_type as \"region\" or \"SNP\"or \"indel\"")
     
   }
   
@@ -217,7 +219,7 @@ getQueryLoc <- function(query, queryType, maxDist=50, filter=TRUE, exons){
 #' @param queryFile tab delimited file containing query information.
 #' For intronic regions should be in the format: region id, chromosome name, region start, region end, strand.
 #' For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)
-#' @param queryType type of query file (\code{"SNP"} or \code{"region"})
+#' @param queryType type of query file (\code{"SNP"} or \code{"region"} or\code{"indel"})
 #' @param exons GRanges containing exon co-ordinates.
 #' Should be produced by gtfToExons()
 #' @param maxDist maximum distance a SNP can be from an annotated 3' exon.
@@ -238,6 +240,9 @@ getQueryLoc <- function(query, queryType, maxDist=50, filter=TRUE, exons){
 #'
 #' queryIntronFile <- system.file("extdata","intron_example.txt", package = "branchpointer")
 #' queryIntron <- readQueryFile(queryIntronFile,queryType = "region", exons)
+#' 
+#' queryIndelFile <- system.file("extdata","indel_example.txt", package = "branchpointer")
+#' queryIndel <- readQueryFile(queryIndelFile,queryType = "indel", exons)
 #' @author Beth Signal
 
 readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
@@ -255,13 +260,17 @@ readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
       queryType <- "SNP"
       message("first line of file has 6 columns")
       message("using query_type = \"SNP\"")
+    }else if(ncol(queryTest) == 7){
+        queryType <- "indel"
+        message("first line of file has 7 columns")
+        message("using query_type = \"indel\"")
     }else{
       stop("please specify query_type and provide correctly formatted file")
     }
   }
 
-  if (!(queryType %in% c("SNP", "region"))) {
-    message("please specify query_type as \"region\" or \"SNP\"")
+  if (!(queryType %in% c("SNP", "region", "indel"))) {
+    message("please specify query_type as \"region\" or \"SNP\"or \"indel\"")
   }else{
     if (queryType == "SNP") {
       query <- data.table::fread(
@@ -309,6 +318,66 @@ readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
                                     end = query$chrom_end),
           strand = query$strand,
           id = query$id)
+    }else if (queryType == "indel"){
+        query <- data.table::fread(
+            queryFile,header = TRUE,
+            colClasses = c(
+                "character", "character", "numeric",
+                "numeric",
+                "character", "character", "character"
+            ), data.table=FALSE)
+        colnames(query)[1:7] <-
+            c("id", "chromosome","chrom_start","chrom_end","strand","ref_allele", "alt_allele")
+        
+        #check single nts
+        query$ref_allele <- toupper(query$ref_allele)
+        query$alt_allele <- toupper(query$alt_allele)
+        
+        # keep only ref/alt alleles with ACGT
+        keep <- which((grepl("[ATCG]", query$ref_allele) & 
+                           !grepl("[BD-FH-SU-Z]",query$ref_allele) | 
+                           query$ref_allele %in% c("","-")) &
+                          (grepl("[ATCG]", query$alt_allele) & 
+                               !grepl("[BD-FH-SU-Z]",query$alt_allele) | 
+                               query$alt_allele %in% c("","-")))
+        
+        query <- query[keep,]
+        query$type <- "indel"
+        query$type[which(query$ref_allele == "-")] <- "insertion"
+        query$type[which(query$alt_allele == "-")] <- "deletion"
+        
+        queryGRanges <- GRanges(seqnames=S4Vectors::Rle(query$chromosome),
+                                ranges=IRanges::IRanges(start=query$chrom_start, 
+                                                        end=query$chrom_end),
+                                strand=query$strand,
+                                id=query$id,
+                                ref_allele=query$ref_allele,
+                                alt_allele=query$alt_allele,
+                                type=query$type)
+        
+        # keep only insertions/deletions/indels overlapping 5' end of the intron
+        introns <- exonsToIntrons(exons, maxDist = maxDist)
+        ol <- as.data.frame(findOverlaps(queryGRanges, introns))
+        ol$queryId <- queryGRanges$id[ol$queryHits]
+        ol$subject_strand <- as.character(strand(introns)[ol$subjectHits])
+        ol$id_plus_strand <- paste0(ol$queryId, ol$subject_strand)
+        keep <- which(!duplicated(ol$id_plus_strand))
+        ol <- ol[keep,]
+        
+        # add a strand based on overlapping intron
+        queryGRanges <- queryGRanges[ol$queryHits]
+        strand(queryGRanges) <- ol$subject_strand
+        
+        # if query overlaps on both strands give a unique name
+        bothStrands <- ol$queryId[which(duplicated(ol$queryHits))]
+        posIndex <- which(queryGRanges$id %in% bothStrands & as.logical(strand(queryGRanges) == "+"))
+        queryGRanges$id[posIndex] <- paste0(queryGRanges$id[posIndex], "_pos")
+        negIndex <- which(queryGRanges$id %in% bothStrands & as.logical(strand(queryGRanges) == "-"))
+        queryGRanges$id[negIndex] <- paste0(queryGRanges$id[negIndex], "_neg")
+        
+        # remove indels that overlap an exon?
+        # olEx <- findOverlaps(queryGRanges, exons)
+        # queryGRanges <- queryGRanges[-unique(queryHits(olEx))]
     }
 
     #check for duplicated query ids
@@ -324,6 +393,10 @@ readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
     if(length(queryGRanges) > 0){
       queryGRanges.loc <- getQueryLoc(queryGRanges, queryType, maxDist = maxDist, filter = filter,
                                     exons = exons)
+      if(queryType=="indel"){
+          keep <- which(queryGRanges.loc$to_3prime < maxDist+2)
+          queryGRanges.loc <- queryGRanges.loc[keep]
+      }
       return(queryGRanges.loc)
     }
     
