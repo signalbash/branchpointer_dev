@@ -11,6 +11,7 @@
 BiocStyle::latex()
 @
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
@@ -261,6 +262,108 @@ plotBranchpointWindow(querySNP$id[2],
                       plotStructure = TRUE,
                       exons = exons)
 @
+
+
+\section{Effects of deletions, insertions and indels on branchpoint annotations}
+In addition to locating branchpoints in intronic windows, branchpointer can be used to evaluate the local effects of SNPs on branchpoints.
+The general workflow is the same as for annotation of intronic windows, however queryType="SNP" must be used.
+
+\subsection{Read query and calculate location attributes}
+
+Query SNPs should be located nearby a branchpoint window to have any potential effects on branchpoint architecture
+SNP queries can be supplied as a table formatted as follows:
+
+<<show_indel, message=FALSE>>=
+queryIndelFile <- system.file("extdata","indel_example.txt", 
+                            package = "branchpointer")
+queryIndelTable <- read.delim(queryIndelFile)
+head(queryIndelTable)
+@
+
+
+Branchpointer automatically filters for deletions/insertions and indel event within 50 nt of a 3' SS. The distance can be changed by altering maxDist.
+Like with SNPs, each event will be associated with the closest 3' exon. 
+
+<<read_snp, message=FALSE>>=
+queryIndel <- readQueryFile(queryIndelFile, 
+                          queryType = "indel", 
+                          exons = exons, 
+                          filter = TRUE)
+head(queryIndel)
+@
+
+Queries can be provided as stranded or unstranded. 
+In the case of unstranded queries, any value except "+" or "-" will cause branchpointer to find overlapping introns and assign strand based on the intron strand. If an event overlaps introns on both strands, a positive and negative strand version will be created.
+
+Queries will automatically be classed as insertions, deletions or indels depending of the reference and alternative allele sequences.
+
+\subsection{Predict branchpoint probabilities}
+
+Using a .fa and bedtools:
+<<indel_att_fa, message=FALSE, eval=FALSE>>=
+branchpointPredictionsIndel <- predictBranchpoints(queryIndel,
+                                        queryType = "indel",
+                                        genome = "GRCh38.primary_assembly.genome.fa",
+                                        bedtoolsLocation="/Apps/bedtools2/bin/bedtools")
+@
+
+Using a BSgenome:
+<<indel_att_BS, message=FALSE>>=
+#for query SNPs
+branchpointPredictionsIndel <- predictBranchpoints(queryIndel,
+                                        queryType = "indel",
+                                        BSgenome = g)
+head(branchpointPredictionsIndel)
+
+#to summarise effects:
+queryIndelSummary <- predictionsToSummary(queryIndel,branchpointPredictionsIndel)
+head(queryIndelSummary)
+@
+
+The window scores in the reference and alternative sequences can be visualised using plotBranchpointWindow().
+The light grey box around the sequence bounds the regions where the nucleotide sequences do not match.
+The daker grey box around the sequence identifies the regions that has been either deleted or inserted.
+
+Creation of branchpoint by indel
+<<99667-plot>>=
+plotBranchpointWindow("99667", 
+                      branchpointPredictionsIndel,
+                      probabilityCutoff = 0.52,
+                      plotMutated = TRUE,
+                      plotStructure = FALSE,
+                      exons = exons)
+@
+
+Creation of branchpoint by indel
+<<99667-plot>>=
+plotBranchpointWindow("99667", 
+                      branchpointPredictionsIndel,
+                      probabilityCutoff = 0.52,
+                      plotMutated = TRUE,
+                      plotStructure = FALSE,
+                      exons = exons)
+@
+
+Creation of branchpoint by deletion
+<<406041-plot>>=
+plotBranchpointWindow("406041", 
+                      branchpointPredictionsIndel,
+                      probabilityCutoff = 0.52,
+                      plotMutated = TRUE,
+                      plotStructure = FALSE,
+                      exons = exons)
+@
+
+Deletion of branchpoint by insertion
+<<99667-plot>>=
+plotBranchpointWindow("389807", 
+                      branchpointPredictionsIndel,
+                      probabilityCutoff = 0.52,
+                      plotMutated = TRUE,
+                      plotStructure = FALSE,
+                      exons = exons)
+@
+
 \section{Performance}
 
 Branchpointer is vectorised where possible to decrease run times. 

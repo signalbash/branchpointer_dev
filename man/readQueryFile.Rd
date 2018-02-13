@@ -11,7 +11,7 @@ readQueryFile(queryFile, queryType, exons, maxDist = 50, filter = TRUE)
 For intronic regions should be in the format: region id, chromosome name, region start, region end, strand.
 For SNP variants should be in the format: SNP id, chromosome name, SNP position, strand, reference allele (A/T/C/G), alternative allele (A/T/C/G)}
 
-\item{queryType}{type of query file (\code{"SNP"} or \code{"region"})}
+\item{queryType}{type of query file (\code{"SNP"} or \code{"region"} or\code{"indel"})}
 
 \item{exons}{GRanges containing exon co-ordinates.
 Should be produced by gtfToExons()}
@@ -37,6 +37,9 @@ querySNP <- readQueryFile(querySNPFile, queryType = "SNP", exons)
 
 queryIntronFile <- system.file("extdata","intron_example.txt", package = "branchpointer")
 queryIntron <- readQueryFile(queryIntronFile,queryType = "region", exons)
+
+queryIndelFile <- system.file("extdata","indel_example.txt", package = "branchpointer")
+queryIndel <- readQueryFile(queryIndelFile,queryType = "indel", exons)
 }
 \author{
 Beth Signal

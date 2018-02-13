@@ -12,7 +12,7 @@ getExonDists(query, exons, queryType)
 \item{exons}{GenomicRanges containing exon co-ordinates.
 Should be produced by gtfToExons()}
 
-\item{queryType}{type of query. "SNP" or "region"}
+\item{queryType}{type of query. "SNP" or "region" or "indel"}
 }
 \value{
 GenomicRanges with distance to the closest 3' and 5' exons,

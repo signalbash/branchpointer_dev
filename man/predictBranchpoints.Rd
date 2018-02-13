@@ -13,7 +13,7 @@ predictBranchpoints(query, uniqueId = "test", queryType,
 
 \item{uniqueId}{unique string identifier for intermediate .bed and .fa files.}
 
-\item{queryType}{type of branchpointer query. "SNP" or "region".}
+\item{queryType}{type of branchpointer query. "SNP" or "region" or "indel".}
 
 \item{workingDirectory}{directory where intermediate .bed and .fa are located}
 

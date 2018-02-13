@@ -11,7 +11,7 @@ getQueryLoc(query, queryType, maxDist = 50, filter = TRUE, exons)
 must have chromosome at position 2, genomic co-ordinate at position 3,
 and strand at position 4.}
 
-\item{queryType}{type of query file (\code{"SNP"} or \code{"region"})}
+\item{queryType}{type of query file (\code{"SNP"} or \code{"region"} or \code{"indel"})}
 
 \item{maxDist}{maximum distance a SNP can be from an annotated 3' exon.}
 
