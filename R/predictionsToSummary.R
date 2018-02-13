@@ -37,6 +37,7 @@ predictionsToSummary <- function(query,
   mcols(query)$BP_num_ALT = 0
   mcols(query)$deleted_n = 0
   mcols(query)$created_n = 0
+  mcols(query)$is_in_window = 0
   mcols(query)$dist_to_BP_REF = NA
   mcols(query)$dist_to_BP_ALT = NA
   mcols(query)$max_prob_REF = NA
@@ -56,7 +57,7 @@ predictionsToSummary <- function(query,
   m <- match(query$id, tab$Var1)
   query$BP_num_REF[which(!is.na(m))] <- tab$Freq[m[which(!is.na(m))]]
   
-  bps.ref[order(abs(bps.ref[,which(colnames(bps.ref) == "distance")])),]
+  bps.ref <- bps.ref[order(abs(bps.ref[,which(colnames(bps.ref) == "distance")])),]
   m <- match(query$id, bps.ref$id)
   query$dist_to_BP_REF[which(!is.na(m))] <- bps.ref$distance[m[which(!is.na(m))]]
   
@@ -97,25 +98,79 @@ predictionsToSummary <- function(query,
   m <- match(query$id, bps.alt$id)
   query$max_U2_ALT[which(!is.na(m))] <- bps.alt$U2_binding_energy[m[which(!is.na(m))]]
   
-  id.loc <- with(predictions, paste0(id,"_", to_3prime_point))
-  index <- which(id.loc %in% id.loc[predictions$branchpoint_prob > probabilityCutoff])
+  
+  #?indel
+  shift <- ifelse(query$ref_allele =="-", 0, nchar(query$ref_allele)) - 
+      ifelse(query$alt_allele =="-", 0, nchar(query$alt_allele))
+  
+  #id.loc <- with(predictions, paste0(id,"_", to_3prime_point))
+  id.loc <- with(predictions, paste0(id,"_", test_site))
+  
+  notInAltWindow <- bps.ref$id[which(
+      bps.ref$to_3prime_point - bps.ref$extend > 44 | 
+          bps.ref$to_3prime_point - bps.ref$extend < 18)]
+  
+  notInAltWindow <- as.data.frame(table(notInAltWindow))
+  m <- match(notInAltWindow$notInAltWindow, query$id)
+  query$is_in_window[m] <- notInAltWindow$Freq
+  
+  
+  notInAltWindow <- bps.ref$id[which(
+      bps.ref$to_3prime_point - bps.ref$extend > 44 | 
+          bps.ref$to_3prime_point - bps.ref$extend < 18)]
+  
+  notInAltWindow <- as.data.frame(table(notInAltWindow))
+  m <- match(notInAltWindow$notInAltWindow, query$id)
+  query$is_in_window[m] <- notInAltWindow$Freq
+  
+  
+  notInRefWindow <- bps.alt$id[which(
+      bps.alt$to_3prime_point - bps.alt$extend > 44 | 
+          bps.alt$to_3prime_point - bps.alt$extend < 18)]
+  
+  notInRefWindow <- as.data.frame(table(notInRefWindow))
+  m <- match(notInRefWindow$notInRefWindow, query$id)
+  query$is_in_window[m] <- query$is_in_window[m] + notInRefWindow$Freq
+  
+  index <- which(id.loc %in% id.loc[predictions$branchpoint_prob >
+                                        probabilityCutoff])
   
   # Any sites changed?
   bps.all <- predictions[index,]
-  bps.all <- bps.all[,c('id','to_3prime_point','branchpoint_prob','status')]
+  bps.all <- bps.all[,c('id','test_site','to_3prime_point',
+                        'branchpoint_prob','status')]
   
-  bps.all$id_site <- paste0(bps.all$id,"_",bps.all$to_3prime_point)
+  #bps.all$id_site <- paste0(bps.all$id,"_",bps.all$to_3prime_point)
+  bps.all$id_site <- paste0(bps.all$id,"_",bps.all$test_site)
+  
   bps.ref <- bps.all[bps.all$status=="REF",]
   bps.alt <- bps.all[bps.all$status=="ALT",]
   
   
-  bps.ref$change.bySite <- (bps.ref$branchpoint_prob - 
-    bps.alt$branchpoint_prob[match(bps.alt$id_site, bps.ref$id_site)])
+  bps.ref$prob_ref <- bps.ref$branchpoint_prob
+  bps.alt$prob_ref <- bps.ref$branchpoint_prob[match(bps.alt$id_site,
+                                                     bps.ref$id_site)]
   
-  deleted <- as.data.frame(table(bps.ref$id[
-    which(bps.ref$change.bySite > probabilityChange)]))
-  created <- as.data.frame(table(bps.ref$id[
-    which(bps.ref$change.bySite < (probabilityChange*-1))]))
+  bps.alt$prob_alt <- bps.alt$branchpoint_prob
+  bps.ref$prob_alt <- bps.alt$branchpoint_prob[match(bps.ref$id_site,
+                                                     bps.alt$id_site)]
+  
+  bps.all <- rbind(bps.ref, bps.alt[which(!(bps.alt$id_site %in% 
+                                                bps.ref$id_site)),])
+  
+  deleted <- as.data.frame(table(bps.ref$id[which(
+      bps.all$prob_ref > probabilityCutoff &
+          ((bps.all$prob_ref - bps.all$prob_alt > probabilityCutoff &
+          bps.all$prob_alt < probabilityCutoff) | 
+          (is.na(bps.all$prob_alt)))
+  )]))
+  
+  created <- as.data.frame(table(bps.ref$id[which(
+      bps.all$prob_alt > probabilityCutoff &
+          ((bps.all$prob_alt - bps.all$prob_ref > probabilityCutoff &
+                bps.all$prob_ref < probabilityCutoff) | 
+               (is.na(bps.all$prob_ref)))
+  )]))
   
   m <- match(query$id, deleted$Var1)
   query$deleted_n[which(!is.na(m))] <- deleted$Freq[m[which(!is.na(m))]]
