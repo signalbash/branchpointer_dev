@@ -1,6 +1,7 @@
 # branchpointer: Prediction of intronic splicing branchpoints
 
-See: http://www.biorxiv.org/content/early/2016/12/14/094003
+Citation:
+Bethany Signal, Brian S Gloss, Marcel E Dinger, Tim R Mercer; Machine learning annotation of human branchpoints, Bioinformatics, btx688, https://doi.org/10.1093/bioinformatics/btx688
 
 This is the development version of branchpointer.
 For the current BioConductor version see:
@@ -34,9 +35,9 @@ Alternatively, an R BSgenome object can now be used (see vignette).
 
 **Title**: Prediction of intronic splicing branchpoints
 
-**Version**: 1.3.0
+**Version**: 1.4.1
 
-**Date**: 2017-07-10
+**Date**: 2018-03-06
 
 **Author**: Beth Signal
 
