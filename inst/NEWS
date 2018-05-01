@@ -41,3 +41,5 @@ Bug fixes
 Version 1.4.0
 Added functionality to process insertions, deletions, and indels
 
+Version 1.4.1
+Changed Vignette to RMD and updated citation
