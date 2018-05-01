@@ -328,7 +328,15 @@ readQueryFile <- function(queryFile, queryType, exons, maxDist=50, filter=TRUE){
             ), data.table=FALSE)
         colnames(query)[1:7] <-
             c("id", "chromosome","chrom_start","chrom_end","strand","ref_allele", "alt_allele")
-        
+        #make unique names here
+        if (any(duplicated(query$id))) {
+            message(paste0(length(which(
+                duplicated(query$id)
+            ))," query ids are not unique"))
+            message("Check output for new names or rename")
+            query$id = make.names(query$id, unique = TRUE)
+        }
+
         #check single nts
         query$ref_allele <- toupper(query$ref_allele)
         query$alt_allele <- toupper(query$alt_allele)
